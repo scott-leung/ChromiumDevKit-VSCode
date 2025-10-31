@@ -46,11 +46,12 @@ export class FileCreateListener {
       return; // File not in workspace
     }
 
-    // Check if it's a supported file type (C++, header, or Mojom)
+    // Check if it's a supported file type (C++, header, Mojom, or IDL)
     const isSupportedFile =
       PathService.isHeaderFile(fileInfo) ||
       PathService.isImplementationFile(fileInfo) ||
-      PathService.isMojomFile(fileInfo);
+      PathService.isMojomFile(fileInfo) ||
+      PathService.isIdlFile(fileInfo);
     if (!isSupportedFile) {
       return;
     }

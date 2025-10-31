@@ -68,6 +68,13 @@ export class PathService {
   }
 
   /**
+   * Check if file is an IDL file (.idl)
+   */
+  public static isIdlFile(fileInfo: FileInfo): boolean {
+    return fileInfo.extension.toLowerCase() === '.idl';
+  }
+
+  /**
    * Get corresponding header file path for implementation file
    * @param fileInfo Implementation file info
    * @returns Header file path relative to workspace root

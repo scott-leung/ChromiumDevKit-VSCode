@@ -2,7 +2,7 @@
   "name": "chromium-dev-kit",
   "displayName": "Chromium Dev Kit",
   "description": "Development toolkit for Chromium projects: banner comments, header guards, and .mojom/.idl file support",
-  "version": "0.3.0",
+  "version": "0.3.2",
   "publisher": "ScottLeung",
   "engines": {
     "vscode": "^1.60.0"
@@ -18,6 +18,7 @@
     "type": "git",
     "url": "https://github.com/scott-leung/ChromiumDevKit-VSCode"
   },
+  "icon": "logo.png",
   "contributes": {
     "commands": [
       {

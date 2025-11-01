@@ -48,6 +48,14 @@ Say goodbye to manually writing copyright headers and hello to consistent, team-
 
 ---
 
+## 🎬 See It In Action
+
+![Extension Demo](assets/what_can_it_do.gif)
+
+*Watch the extension automatically generate banners, header guards, and includes as you create files.*
+
+---
+
 ## 📦 Installation
 
 ### From VSCode Marketplace
@@ -74,6 +82,10 @@ Say goodbye to manually writing copyright headers and hello to consistent, team-
    - **Author**: Your name
    - **Email**: Your email address
    - **Company**: Your organization name
+
+![Configuration Demo](assets/how_to_modify_info.gif)
+
+*Configure your author information and watch it automatically populate in new files.*
 
 ### Step 2: Create a New File
 Create a new C++ header file in your Chromium project:

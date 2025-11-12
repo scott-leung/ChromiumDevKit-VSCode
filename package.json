@@ -2,7 +2,7 @@
   "name": "chromium-dev-kit",
   "displayName": "Chromium Dev Kit",
   "description": "Development toolkit for Chromium projects with window customization: banner comments, header guards, .mojom/.idl support, and window color & name management",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "publisher": "ScottLeung",
   "engines": {
     "vscode": "^1.75.0"
@@ -70,13 +70,13 @@
         "chromiumDevKit.author": {
           "type": "string",
           "default": "WaitToModify",
-          "markdownDescription": "默认作者名称,用于 Banner 注释中的 `{{Author}}` 变量替换。\n\nDefault author name for banner comments. Used to replace `{{Author}}` variable in templates."
+          "markdownDescription": "默认作者名称,用于 Banner 注释中的 `{{Author}}` 变量替换。\n\n**自动默认值:** 如果未修改此设置,扩展会尝试从 `git config user.name` 读取作者名称。若 git 不可用,则使用 `WaitToModify` 占位符。\n\n---\n\nDefault author name for banner comments. Used to replace `{{Author}}` variable in templates.\n\n**Auto Default:** If not modified, the extension attempts to read from `git config user.name`. Falls back to `WaitToModify` if git is unavailable."
         },
         "chromiumDevKit.email": {
           "type": "string",
           "default": "WaitToModify@alibaba-inc.com",
           "pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
-          "markdownDescription": "作者邮箱地址,用于 Banner 注释中的 `{{Mail}}` 变量替换。\n\nAuthor email address for banner comments. Used to replace `{{Mail}}` variable in templates.\n\n**格式示例 / Example:** `user@example.com`"
+          "markdownDescription": "作者邮箱地址,用于 Banner 注释中的 `{{Mail}}` 变量替换。\n\n**自动默认值:** 如果未修改此设置,扩展会尝试从 `git config user.email` 读取邮箱地址。若 git 不可用,则使用 `WaitToModify@alibaba-inc.com` 占位符。\n\n---\n\nAuthor email address for banner comments. Used to replace `{{Mail}}` variable in templates.\n\n**Auto Default:** If not modified, the extension attempts to read from `git config user.email`. Falls back to `WaitToModify@alibaba-inc.com` if git is unavailable.\n\n**格式示例 / Example:** `user@example.com`"
         },
         "chromiumDevKit.company": {
           "type": "string",
@@ -89,7 +89,7 @@
             {
               "id": "quark-chromium",
               "name": "Quark Chromium Style",
-              "content": "//\n// Copyright (C) {{Company}}. All rights reserved.\n// Unauthorized copying of this file, via any medium is strictly prohibited\n// Proprietary and confidential\n// Author: {{Author}}\n// Mail: {{Mail}}\n// Date: {{Date}}\n//\n\n"
+              "content": "// Copyright (C) {{Company}}. All rights reserved.\n// Unauthorized copying of this file, via any medium is strictly prohibited\n// Proprietary and confidential\n// Author: {{Author}}\n// Mail: {{Mail}}\n// Date: {{Date}}\n\n"
             },
             {
               "id": "quark-chromium-simple",

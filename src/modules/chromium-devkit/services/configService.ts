@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { ExtensionConfig } from '../models/extensionConfig';
 import { BannerTemplate } from '../models/bannerTemplate';
+import { GitUtils } from '../../../shared/utils/gitUtils';
 
 /**
  * Service for loading and managing extension configuration
@@ -8,11 +9,16 @@ import { BannerTemplate } from '../models/bannerTemplate';
 export class ConfigService {
   // eslint-disable-next-line @typescript-eslint/naming-convention
   private static readonly CONFIG_SECTION = 'chromiumDevKit';
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  private static readonly DEFAULT_AUTHOR = 'WaitToModify';
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  private static readonly DEFAULT_EMAIL = 'WaitToModify@alibaba-inc.com';
 
   /**
    * Load extension configuration from VS Code settings
+   * Attempts to use git config values as defaults when user hasn't modified the settings
    */
-  public static loadConfig(): ExtensionConfig {
+  public static async loadConfig(): Promise<ExtensionConfig> {
     const config = vscode.workspace.getConfiguration(this.CONFIG_SECTION);
 
     // Load templates with default value (matching package.json defaults)
@@ -57,9 +63,28 @@ export class ConfigService {
       throw new Error(`Default template ID "${defaultTemplateId}" not found in templates`);
     }
 
+    // Load author and email with intelligent git fallback
+    let author = config.get<string>('author', this.DEFAULT_AUTHOR);
+    let email = config.get<string>('email', this.DEFAULT_EMAIL);
+
+    // If user hasn't changed from defaults, try to get from git config
+    if (author === this.DEFAULT_AUTHOR) {
+      const gitAuthor = await GitUtils.getGitUserName();
+      if (gitAuthor) {
+        author = gitAuthor;
+      }
+    }
+
+    if (email === this.DEFAULT_EMAIL) {
+      const gitEmail = await GitUtils.getGitUserEmail();
+      if (gitEmail) {
+        email = gitEmail;
+      }
+    }
+
     return {
-      author: config.get('author', ''),
-      email: config.get('email', ''),
+      author,
+      email,
       company: config.get('company', ''),
       templates,
       defaultTemplateId,

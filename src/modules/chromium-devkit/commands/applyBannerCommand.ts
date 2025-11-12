@@ -19,7 +19,7 @@ export class ApplyBannerCommand {
         return;
       }
 
-      const config = ConfigService.loadConfig();
+      const config = await ConfigService.loadConfig();
       const template = config.templates.find((t) => t.id === templateId);
 
       if (!template) {

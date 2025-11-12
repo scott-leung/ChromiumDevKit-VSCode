@@ -4,6 +4,7 @@ import { PathService } from '../services/pathService';
 import { BannerService } from '../services/bannerService';
 import { HeaderGuardService } from '../services/headerGuardService';
 import { DetectionService } from '../services/detectionService';
+import { ExtensionConfig } from '../models/extensionConfig';
 
 /**
  * Listener for file creation events
@@ -15,7 +16,7 @@ export class FileCreateListener {
    */
   public static async onDidCreateFiles(event: vscode.FileCreateEvent): Promise<void> {
     try {
-      const config = ConfigService.loadConfig();
+      const config = await ConfigService.loadConfig();
 
       // Skip if auto-add is disabled
       if (!config.autoAddOnCreate) {
@@ -39,7 +40,7 @@ export class FileCreateListener {
    */
   private static async processFile(
     uri: vscode.Uri,
-    config: vscode.WorkspaceConfiguration | ReturnType<typeof ConfigService.loadConfig>,
+    config: ExtensionConfig,
   ): Promise<void> {
     const fileInfo = PathService.createFileInfo(uri);
     if (!fileInfo) {
@@ -68,8 +69,8 @@ export class FileCreateListener {
     }
 
     // Get default template
-    const template = ConfigService.getDefaultTemplate(config as ReturnType<typeof ConfigService.loadConfig>);
-    const banner = BannerService.processTemplate(template, config as ReturnType<typeof ConfigService.loadConfig>);
+    const template = ConfigService.getDefaultTemplate(config);
+    const banner = BannerService.processTemplate(template, config);
 
     // Insert banner
     await BannerService.insertBanner(editor, banner);

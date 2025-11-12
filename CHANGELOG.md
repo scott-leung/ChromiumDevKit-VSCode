@@ -5,6 +5,34 @@ All notable changes to the "Chromium Dev Kit" extension will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.2] - 2025-11-12
+
+### Added
+- **Git Configuration Auto-Detection**: Smart default value detection for author and email settings
+  - Automatically reads `git config user.name` and `git config user.email` when settings are not modified
+  - Falls back to placeholder values (`WaitToModify`, `WaitToModify@alibaba-inc.com`) if git is unavailable
+  - Provides seamless experience for users with git configured - no manual setup required
+  - Reduces initial configuration friction for new users
+
+### Changed
+- **Async Configuration Loading**: ConfigService.loadConfig() is now asynchronous
+  - Enables proper async execution of git config commands
+  - Updated all service calls to use `await` pattern
+  - Improved configuration initialization reliability
+- **Enhanced Configuration Descriptions**: Updated package.json settings with detailed explanations
+  - `chromiumDevKit.author`: Now includes git auto-detection behavior explanation
+  - `chromiumDevKit.email`: Now includes git auto-detection behavior explanation
+  - Bilingual documentation (English/Chinese) for better accessibility
+- **Template Format Fix**: Removed extra leading `//` from quark-chromium template for cleaner output
+
+### Technical Improvements
+- Created `GitUtils` utility class for git configuration operations
+  - Cached git config reading for performance optimization
+  - Safe error handling for environments without git
+  - Reusable across extension modules
+- Type safety improvements with proper async/await patterns
+- Better separation of concerns with dedicated git utilities
+
 ## [0.4.1] - 2025-11-12
 
 ### Fixed

@@ -21,7 +21,7 @@ export class CommandRegistry {
 
         const disposable = vscode.commands.registerCommand(commandId, async () => {
           // Read config at execution time to get current templates
-          const config = ConfigService.loadConfig();
+          const config = await ConfigService.loadConfig();
 
           // Check if template index is valid
           if (templateIndex >= config.templates.length) {

@@ -1,6 +1,6 @@
 # Chromium Dev Kit
 
-![Version](https://img.shields.io/badge/version-0.4.1-blue.svg)
+![Version](https://img.shields.io/badge/version-0.4.2-blue.svg)
 ![VS Code](https://img.shields.io/badge/VS%20Code-1.75.0+-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
@@ -122,12 +122,20 @@ Choose which parts of VSCode to colorize:
 
 ## 🚀 Quick Start
 
-### Step 1: Configure Your Information
+### Step 1: Configure Your Information (Optional!)
+
+**Good news**: If you have git configured on your system, the extension will automatically use your git username and email! No manual setup required.
+
+The extension intelligently reads:
+- `git config user.name` → **Author** field
+- `git config user.email` → **Email** field
+
+**Manual Configuration** (only if needed):
 1. Open VSCode Settings (`Cmd+,` or `Ctrl+,`)
 2. Search for **"Chromium Dev Kit"**
 3. Set your details:
-   - **Author**: Your name
-   - **Email**: Your email address
+   - **Author**: Your name (auto-populated from git if available)
+   - **Email**: Your email address (auto-populated from git if available)
    - **Company**: Your organization name
 
 ![Configuration Demo](assets/how_to_modify_info.gif)
@@ -339,6 +347,8 @@ Your team uses MIT license instead of proprietary headers.
   "chromiumDevKit.company": "Your Company Name"
 }
 ```
+
+> **Smart Defaults**: The extension automatically reads author and email from your git configuration (`git config user.name` and `git config user.email`) if you haven't modified these settings. Manual configuration is only needed if you want different values or don't have git configured.
 
 #### Template Management
 ```json

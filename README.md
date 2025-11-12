@@ -1,7 +1,7 @@
 # Chromium Dev Kit
 
-![Version](https://img.shields.io/badge/version-0.4.0-blue.svg)
-![VS Code](https://img.shields.io/badge/VS%20Code-1.60.0+-blue.svg)
+![Version](https://img.shields.io/badge/version-0.4.1-blue.svg)
+![VS Code](https://img.shields.io/badge/VS%20Code-1.75.0+-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
 > **Development toolkit for Chromium projects** - Automate banner comments, header guards, and streamline C++/Mojom/IDL file creation.

@@ -143,11 +143,29 @@ export async function loadWorkspaceConfig(directory: string): Promise<WindowSett
     }
 }
 
-export async function saveToWorkspaceConfig(key: string, value: string | boolean): Promise<void> {
+export async function saveToWorkspaceConfig(key: string, value: string | boolean): Promise<boolean> {
     // console.log('[DEBUG] saveToWorkspaceConfig called with key:', key, 'value:', value);
     const config = vscode.workspace.getConfiguration('chromiumDevKit');
-    await config.update(`windowColor.${key}`, value, vscode.ConfigurationTarget.Workspace);
-    // console.log('[DEBUG] saveToWorkspaceConfig completed for key:', key);
+    const fullKey = `windowColor.${key}`;
+
+    try {
+        // Check if the configuration key is registered by inspecting it
+        const inspection = config.inspect(fullKey);
+        if (!inspection) {
+            console.warn(`[Window Color] Configuration key "${fullKey}" is not registered in package.json. Skipping write.`);
+            return false;
+        }
+
+        await config.update(fullKey, value, vscode.ConfigurationTarget.Workspace);
+        // console.log('[DEBUG] saveToWorkspaceConfig completed for key:', key);
+        return true;
+    } catch (error: any) {
+        // Don't throw errors during configuration write - just log and continue
+        // This prevents extension activation failure during upgrades
+        console.error(`[Window Color] Failed to write configuration "${fullKey}": ${error.message}`);
+        console.error('[Window Color] Extension will continue with in-memory defaults');
+        return false;
+    }
 }
 
 export async function saveWorkspaceToGroup(groupName: string, workspace: WindowReference): Promise<void> {

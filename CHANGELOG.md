@@ -5,6 +5,17 @@ All notable changes to the "Chromium Dev Kit" extension will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2025-11-12
+
+### Fixed
+- **Configuration Migration Issue**: Fixed activation failure when upgrading from older versions
+  - Added configuration registration check before write attempts using `config.inspect()`
+  - Made default configuration writing non-blocking to prevent activation failures
+  - Implemented graceful degradation with in-memory defaults when configuration writes fail
+  - Added informational messages guiding users to manually configure settings if needed
+  - Extension now successfully activates even if configuration schema is not fully loaded during upgrades
+  - Resolved error: "CodeExpectedError: 没有注册配置 chromiumDevKit.windowColor.mainColor，因此无法写入 工作区设置"
+
 ## [0.4.0] - 2025-11-12
 
 ### Added

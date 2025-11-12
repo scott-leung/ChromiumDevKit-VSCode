@@ -2,7 +2,7 @@
   "name": "chromium-dev-kit",
   "displayName": "Chromium Dev Kit",
   "description": "Development toolkit for Chromium projects with window customization: banner comments, header guards, .mojom/.idl support, and window color & name management",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "publisher": "ScottLeung",
   "engines": {
     "vscode": "^1.75.0"

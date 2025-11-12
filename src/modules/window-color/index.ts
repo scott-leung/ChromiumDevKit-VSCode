@@ -60,7 +60,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     let currentConfig = await readConfig(currentWorkspace);
 
-    // Check if we need to save default values
+    // Try to save default values if they don't exist
+    // Wrapped in try-catch to prevent activation failure during upgrades
     const workspaceConfig = vscode.workspace.getConfiguration('chromiumDevKit');
     const needsDefaults = !workspaceConfig.get('windowColor.mainColor') ||
                          workspaceConfig.get('windowColor.isStatusBarColored') === undefined ||
@@ -69,26 +70,48 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                          workspaceConfig.get('windowColor.setWindowTitle') === undefined;
 
     if (needsDefaults) {
-        const savePromises = [];
+        try {
+            const savePromises = [];
 
-        if (!workspaceConfig.get('windowColor.mainColor') && currentConfig.mainColor) {
-            savePromises.push(saveToWorkspaceConfig('mainColor', currentConfig.mainColor));
-        }
-        if (workspaceConfig.get('windowColor.isStatusBarColored') === undefined) {
-            savePromises.push(saveToWorkspaceConfig('isStatusBarColored', currentConfig.isStatusBarColored));
-        }
-        if (workspaceConfig.get('windowColor.isWindowNameColored') === undefined) {
-            savePromises.push(saveToWorkspaceConfig('isWindowNameColored', currentConfig.isWindowNameColored));
-        }
-        if (workspaceConfig.get('windowColor.isActiveItemsColored') === undefined) {
-            savePromises.push(saveToWorkspaceConfig('isActiveItemsColored', currentConfig.isActiveItemsColored));
-        }
-        if (workspaceConfig.get('windowColor.setWindowTitle') === undefined) {
-            savePromises.push(saveToWorkspaceConfig('setWindowTitle', currentConfig.setWindowTitle));
-        }
+            if (!workspaceConfig.get('windowColor.mainColor') && currentConfig.mainColor) {
+                savePromises.push(saveToWorkspaceConfig('mainColor', currentConfig.mainColor));
+            }
+            if (workspaceConfig.get('windowColor.isStatusBarColored') === undefined) {
+                savePromises.push(saveToWorkspaceConfig('isStatusBarColored', currentConfig.isStatusBarColored));
+            }
+            if (workspaceConfig.get('windowColor.isWindowNameColored') === undefined) {
+                savePromises.push(saveToWorkspaceConfig('isWindowNameColored', currentConfig.isWindowNameColored));
+            }
+            if (workspaceConfig.get('windowColor.isActiveItemsColored') === undefined) {
+                savePromises.push(saveToWorkspaceConfig('isActiveItemsColored', currentConfig.isActiveItemsColored));
+            }
+            if (workspaceConfig.get('windowColor.setWindowTitle') === undefined) {
+                savePromises.push(saveToWorkspaceConfig('setWindowTitle', currentConfig.setWindowTitle));
+            }
 
-        await Promise.all(savePromises);
-        currentConfig = await readConfig(currentWorkspace);
+            const results = await Promise.all(savePromises);
+            const successCount = results.filter(r => r).length;
+            const failCount = results.filter(r => !r).length;
+
+            if (failCount > 0) {
+                console.warn(`[Window Color] ${failCount} configuration write(s) failed during activation. Extension will use in-memory defaults.`);
+                // Show a one-time informational message for upgrades
+                vscode.window.showInformationMessage(
+                    'Chromium Dev Kit: Window Color configuration may need manual setup. Please open settings to configure.',
+                    'Open Settings'
+                ).then(selection => {
+                    if (selection === 'Open Settings') {
+                        vscode.commands.executeCommand('chromiumDevKit.openWindowColorSettings');
+                    }
+                });
+            } else {
+                currentConfig = await readConfig(currentWorkspace);
+            }
+        } catch (error: any) {
+            // Continue activation even if default writing fails completely
+            console.error(`[Window Color] Failed to write default configuration: ${error.message}`);
+            console.error('[Window Color] Continuing with in-memory defaults. Extension will still function.');
+        }
     }
 
     // Create status bar item for window name
@@ -163,23 +186,35 @@ async function createWindowSettingsWebview(context: vscode.ExtensionContext, dir
                     updateWindowTitle(newProps);
                 }
 
-                const savePromises = [
-                    saveToWorkspaceConfig('name', newProps.windowName),
-                    saveToWorkspaceConfig('mainColor', newProps.mainColor),
-                    saveToWorkspaceConfig('isActivityBarColored', newProps.isActivityBarColored),
-                    saveToWorkspaceConfig('isTitleBarColored', newProps.isTitleBarColored),
-                    saveToWorkspaceConfig('isStatusBarColored', newProps.isStatusBarColored),
-                    saveToWorkspaceConfig('isWindowNameColored', newProps.isWindowNameColored),
-                    saveToWorkspaceConfig('isActiveItemsColored', newProps.isActiveItemsColored),
-                    saveToWorkspaceConfig('setWindowTitle', newProps.setWindowTitle)
-                ];
+                try {
+                    const savePromises = [
+                        saveToWorkspaceConfig('name', newProps.windowName),
+                        saveToWorkspaceConfig('mainColor', newProps.mainColor),
+                        saveToWorkspaceConfig('isActivityBarColored', newProps.isActivityBarColored),
+                        saveToWorkspaceConfig('isTitleBarColored', newProps.isTitleBarColored),
+                        saveToWorkspaceConfig('isStatusBarColored', newProps.isStatusBarColored),
+                        saveToWorkspaceConfig('isWindowNameColored', newProps.isWindowNameColored),
+                        saveToWorkspaceConfig('isActiveItemsColored', newProps.isActiveItemsColored),
+                        saveToWorkspaceConfig('setWindowTitle', newProps.setWindowTitle)
+                    ];
 
-                const reference: WindowReference = {
-                    directory: directory
-                };
-                savePromises.push(saveWindowReference(reference));
+                    const results = await Promise.all(savePromises);
+                    const failCount = results.filter(r => !r).length;
 
-                await Promise.all(savePromises);
+                    if (failCount > 0) {
+                        vscode.window.showWarningMessage(
+                            `Chromium Dev Kit: ${failCount} setting(s) could not be saved. Changes are applied visually but may not persist.`
+                        );
+                    }
+
+                    const reference: WindowReference = {
+                        directory: directory
+                    };
+                    await saveWindowReference(reference);
+                } catch (error: any) {
+                    console.error(`[Window Color] Error saving settings: ${error.message}`);
+                    vscode.window.showErrorMessage(`Failed to save window color settings: ${error.message}`);
+                }
             }
         },
         undefined,

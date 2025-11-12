@@ -1,16 +1,18 @@
 {
   "name": "chromium-dev-kit",
   "displayName": "Chromium Dev Kit",
-  "description": "Development toolkit for Chromium projects: banner comments, header guards, and .mojom/.idl file support",
-  "version": "0.3.2",
+  "description": "Development toolkit for Chromium projects with window customization: banner comments, header guards, .mojom/.idl support, and window color & name management",
+  "version": "0.4.0",
   "publisher": "ScottLeung",
   "engines": {
-    "vscode": "^1.60.0"
+    "vscode": "^1.75.0"
   },
   "categories": [
-    "Other"
+    "Other",
+    "Themes"
   ],
   "activationEvents": [
+    "onStartupFinished",
     "onLanguage:cpp"
   ],
   "main": "./out/extension.js",
@@ -21,6 +23,10 @@
   "icon": "logo.png",
   "contributes": {
     "commands": [
+      {
+        "command": "chromiumDevKit.openWindowColorSettings",
+        "title": "Chromium Dev Kit: Window Color & Name Settings"
+      },
       {
         "command": "chromiumDevKit.applyTemplate1",
         "title": "Chromium Dev Kit: Apply Template 1"
@@ -153,6 +159,86 @@
           "type": "boolean",
           "default": true,
           "markdownDescription": "在 `.cc`/`.cpp`/`.mm` 实现文件中,自动添加对应头文件的 `#include` 语句。\n\nAutomatically add `#include` statement in `.cc`/`.cpp`/`.mm` files for corresponding `.h` file.\n\n**示例 / Example:**\n\n创建 `browser/account/manager.cc` 时,自动添加:\n```cpp\n#include \"browser/account/manager.h\"\n```"
+        },
+        "chromiumDevKit.windowColor.name": {
+          "type": "string",
+          "markdownDescription": "窗口显示名称,将在状态栏左下角显示。\n\nDisplay name of the window shown in the status bar.\n\n**示例 / Example:** `🆕 My Project`"
+        },
+        "chromiumDevKit.windowColor.mainColor": {
+          "type": "string",
+          "pattern": "^#[0-9A-Fa-f]{6}$",
+          "markdownDescription": "窗口主题色 (十六进制颜色值)。\n\nMain color of the window (hex color value).\n\n**示例 / Example:** `#3498db`, `#e74c3c`"
+        },
+        "chromiumDevKit.windowColor.isActivityBarColored": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "是否为活动栏 (左侧图标栏) 应用主题色。\n\nWhether to apply color to the activity bar (left icon bar)."
+        },
+        "chromiumDevKit.windowColor.isTitleBarColored": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "是否为标题栏应用主题色。\n\nWhether to apply color to the title bar."
+        },
+        "chromiumDevKit.windowColor.isStatusBarColored": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "是否为状态栏 (底部信息栏) 应用主题色。\n\nWhether to apply color to the status bar (bottom info bar)."
+        },
+        "chromiumDevKit.windowColor.isWindowNameColored": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "是否为窗口名称标签应用主题色。\n\nWhether to apply color to the window name label."
+        },
+        "chromiumDevKit.windowColor.isActiveItemsColored": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "是否为活动元素 (按钮、标签页等) 应用主题色。\n\nWhether to apply color to active items (buttons, tabs, etc.)."
+        },
+        "chromiumDevKit.windowColor.setWindowTitle": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "是否将窗口名称设置为 VSCode 窗口标题。\n\nWhether to set the window name as the VSCode window title."
+        },
+        "chromiumDevKit.windowColor.workspaces": {
+          "type": "array",
+          "description": "已保存的工作区配置列表 (Saved workspace configurations)",
+          "default": [],
+          "items": {
+            "type": "object",
+            "properties": {
+              "directory": {
+                "type": "string",
+                "description": "工作区目录路径 (Workspace directory path)"
+              }
+            }
+          }
+        },
+        "chromiumDevKit.windowColor.groups": {
+          "type": "array",
+          "description": "工作区分组列表 (Workspace groups)",
+          "default": [],
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "分组名称 (Group name)"
+              },
+              "workspaces": {
+                "type": "array",
+                "description": "该分组中的工作区 (Workspaces in this group)",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "directory": {
+                      "type": "string",
+                      "description": "工作区目录路径 (Workspace directory path)"
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       }
     },

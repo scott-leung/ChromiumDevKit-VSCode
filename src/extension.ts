@@ -1,26 +1,36 @@
 import * as vscode from 'vscode';
-import { FileCreateListener } from './listeners/fileCreateListener';
-import { CommandRegistry } from './commands/commandRegistry';
+import * as chromiumDevKit from './modules/chromium-devkit';
+import * as windowColor from './modules/window-color';
 
 /**
- * Extension activation function
+ * Chromium Dev Kit Extension
+ *
+ * A modular VSCode extension providing:
+ * - Chromium DevKit: Banner generation, header guards, auto-includes for C++ development
+ * - Window Color: Window customization with colors and names for better organization
  */
-export function activate(context: vscode.ExtensionContext) {
-  console.log('C++ Banner extension is now active');
 
-  // Register file create listener (T026)
-  const fileCreateDisposable = vscode.workspace.onDidCreateFiles(
-    FileCreateListener.onDidCreateFiles,
-  );
-  context.subscriptions.push(fileCreateDisposable);
+export async function activate(context: vscode.ExtensionContext): Promise<void> {
+  console.log('Chromium Dev Kit extension is now active');
 
-  // Register apply banner commands (T042)
-  CommandRegistry.registerApplyBannerCommands(context);
+  try {
+    // Activate Chromium DevKit module
+    await chromiumDevKit.activate(context);
+
+    // Activate Window Color module
+    await windowColor.activate(context);
+
+    console.log('All modules activated successfully');
+  } catch (error) {
+    console.error('Error activating modules:', error);
+    vscode.window.showErrorMessage(`Chromium Dev Kit: Failed to activate - ${error}`);
+  }
 }
 
-/**
- * Extension deactivation function
- */
-export function deactivate() {
-  console.log('C++ Banner extension is deactivated');
+export function deactivate(): void {
+  console.log('Chromium Dev Kit extension is deactivated');
+
+  // Deactivate modules
+  chromiumDevKit.deactivate();
+  windowColor.deactivate();
 }

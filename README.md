@@ -1,6 +1,6 @@
 # Chromium Dev Kit
 
-![Version](https://img.shields.io/badge/version-0.3.2-blue.svg)
+![Version](https://img.shields.io/badge/version-0.4.0-blue.svg)
 ![VS Code](https://img.shields.io/badge/VS%20Code-1.60.0+-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
@@ -10,49 +10,96 @@
 
 ## 📋 Overview
 
-Chromium Dev Kit is a VSCode extension designed specifically for Chromium project developers. It eliminates repetitive tasks by automatically generating:
+Chromium Dev Kit is a comprehensive VSCode extension designed for Chromium project developers. It combines powerful development automation with workspace customization:
 
+### 🔧 Development Automation
 - **Copyright banner comments** with customizable templates and variable substitution
 - **Header guards** (`#ifndef`/`#define`/`#endif`) for C++ header files
 - **Auto-include statements** for implementation files
 - **Full support** for C++, Objective-C++, Mojom, and IDL files
 
-Say goodbye to manually writing copyright headers and hello to consistent, team-wide coding standards.
+### 🎨 Workspace Customization
+- **Window color theming** to visually distinguish different projects
+- **Custom window names** displayed in status bar
+- **Real-time color preview** and adjustment
+- **Per-workspace persistence** of color settings
+
+Say goodbye to manually writing copyright headers and switching between similar-looking projects!
 
 ---
 
 ## ✨ Features
 
-### 🎯 Automatic Banner Generation
+### Module 1: Chromium DevKit (Development Automation)
+
+#### 🎯 Automatic Banner Generation
 - **Auto-insert** copyright headers when creating new files
 - **9 keyboard shortcuts** (`Cmd/Ctrl+Shift+1-9`) for quick template application
 - **Template variables** for dynamic content: `{{Author}}`, `{{Mail}}`, `{{Company}}`, `{{Date}}`, `{{Year}}`
 
-### 🛡️ Header Guard Automation
+#### 🛡️ Header Guard Automation
 - **Smart generation** of header guard macros from file paths
 - **Configurable styles**: uppercase (`BROWSER_ACCOUNT_TEST_H_`) or lowercase
 - **Automatic placement** after banner comments
 
-### 🔗 Auto-Include for Implementation Files
+#### 🔗 Auto-Include for Implementation Files
 - **Intelligent matching**: `.cc` files automatically include corresponding `.h` files
 - **Path calculation**: Uses workspace-relative paths for correct include statements
 
-### 📄 Broad File Type Support
+#### 📄 Broad File Type Support
 - **Header files**: `.h` (banner + header guard)
 - **Implementation files**: `.cc`, `.cpp`, `.mm` (banner + auto-include)
 - **Interface files**: `.mojom`, `.idl` (banner only)
 
-### 🚫 Smart Duplicate Detection
+#### 🚫 Smart Duplicate Detection
 - **Prevents re-insertion** of banners and header guards
 - **Safe for existing files** - won't overwrite existing content
 
 ---
 
+### Module 2: Window Color & Name (Workspace Customization)
+
+#### 🎨 Visual Workspace Identification
+- **Custom window colors** - Theme your VSCode window with any color
+- **Window name display** - Show project name in status bar
+- **Multiple color zones** - Customize status bar, title bar, and activity bar independently
+- **Active items theming** - Apply colors to buttons, tabs, and UI elements
+
+![Window Color Demo](assets/window_color_demo.png)
+*Quickly identify and switch between different workspaces with custom colors.*
+
+#### ⚙️ Flexible Configuration
+- **Per-workspace settings** - Each project can have its own color scheme
+- **Real-time preview** - See color changes immediately as you adjust
+- **Settings UI panel** - User-friendly interface for color customization
+- **Workspace persistence** - Colors automatically apply when opening projects
+
+![Settings Panel](assets/window_color_settings.gif)
+*Use the intuitive settings panel to customize your workspace appearance.*
+
+#### 🎯 Color Zone Control
+Choose which parts of VSCode to colorize:
+- **Status Bar** - Bottom information bar (default: enabled)
+- **Window Name Label** - Project name indicator (default: enabled)
+- **Active Items** - Buttons, tabs, selections (default: enabled)
+- **Title Bar** - Top window bar (default: disabled)
+- **Activity Bar** - Left sidebar icons (default: disabled)
+
+---
+
 ## 🎬 See It In Action
 
-![Extension Demo](assets/what_can_it_do.gif)
+### Development Automation Demo
 
+<!-- GIF placeholder: Banner and header guard generation -->
+![Extension Demo](assets/what_can_it_do.gif)
 *Watch the extension automatically generate banners, header guards, and includes as you create files.*
+
+### Workspace Customization Demo
+
+![Multiple Workspaces](assets/window_color_demo.png)
+
+*Easily distinguish between projects with custom colors and names.*
 
 ---
 
@@ -493,6 +540,12 @@ This extension is licensed under the MIT License. See the repository for full li
 ## 🙏 Acknowledgments
 
 Built with love for the Chromium developer community. Special thanks to all contributors and users who provided feedback.
+
+### Open Source Contributions
+
+This extension integrates and builds upon excellent open source projects:
+
+- **[vscode-window-color](https://github.com/lennardv2/vscode-window-color)** by [Lennard Fonteijn](https://github.com/lennardv2) - The Window Color & Name module is based on this project. We are grateful for the solid foundation it provided for workspace customization features.
 
 ---
 

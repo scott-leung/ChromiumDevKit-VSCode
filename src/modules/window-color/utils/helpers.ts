@@ -24,7 +24,8 @@ export async function readConfig(directory: string): Promise<WindowSettings> {
         isStatusBarColored: windowColorSettings['windowColor.isStatusBarColored'] ?? true,
         isWindowNameColored: windowColorSettings['windowColor.isWindowNameColored'] ?? true,
         isActiveItemsColored: windowColorSettings['windowColor.isActiveItemsColored'] ?? true,
-        setWindowTitle: windowColorSettings['windowColor.setWindowTitle'] ?? true
+        setWindowTitle: windowColorSettings['windowColor.setWindowTitle'] ?? true,
+        autoRecover: windowColorSettings['windowColor.autoRecover'] ?? true
     };
 }
 

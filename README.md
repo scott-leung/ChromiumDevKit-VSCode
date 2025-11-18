@@ -1,6 +1,6 @@
 # Chromium Dev Kit
 
-![Version](https://img.shields.io/badge/version-0.4.2-blue.svg)
+![Version](https://img.shields.io/badge/version-0.5.0-blue.svg)
 ![VS Code](https://img.shields.io/badge/VS%20Code-1.75.0+-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 

@@ -2,6 +2,13 @@ import * as vscode from 'vscode';
 import { WindowSettings, WindowReference, WindowGroup } from '../index';
 import { getContrastColor, generateRandomColor } from '../utils/helpers';
 
+// Extension context for accessing storage
+let extensionContext: vscode.ExtensionContext | undefined;
+
+export function initializeStorage(context: vscode.ExtensionContext): void {
+    extensionContext = context;
+}
+
 export async function loadWorkspaces(): Promise<(WindowReference & { settings: WindowSettings })[]> {
     const references = loadWindowReferences();
     return await Promise.all(references.map(async ref => {
@@ -10,44 +17,111 @@ export async function loadWorkspaces(): Promise<(WindowReference & { settings: W
     })).then(results => results.filter(Boolean) as (WindowReference & { settings: WindowSettings })[]);
 }
 
-export async function readConfig(directory: string): Promise<WindowSettings> {
-    // console.log('[DEBUG] readConfig called for directory:', directory);
+/**
+ * Read workspace configuration from local storage
+ */
+async function readConfigFromLocalStorage(directory: string): Promise<WindowSettings | null> {
+    if (!extensionContext) {
+        return null;
+    }
+
+    const storageKey = `windowColor.workspace.${directory}`;
+    const stored = extensionContext.globalState.get<WindowSettings>(storageKey);
+    
+    if (stored) {
+        // Ensure mainColorContrast is up to date
+        stored.mainColorContrast = getContrastColor(stored.mainColor);
+        
+        // Ensure autoRecover field exists (for backward compatibility with old stored data)
+        if (stored.autoRecover === undefined) {
+            stored.autoRecover = true;
+        }
+    }
+    
+    return stored || null;
+}
+
+/**
+ * Save workspace configuration to local storage
+ */
+export async function saveConfigToLocalStorage(directory: string, settings: WindowSettings): Promise<void> {
+    if (!extensionContext) {
+        console.warn('[Window Color] Extension context not initialized');
+        return;
+    }
+
+    const storageKey = `windowColor.workspace.${directory}`;
+    await extensionContext.globalState.update(storageKey, settings);
+    console.log(`[Window Color] Configuration saved to local storage for: ${directory}`);
+}
+
+/**
+ * Read configuration from .vscode/settings.json (for backward compatibility)
+ */
+async function readConfigFromWorkspaceFile(directory: string): Promise<Partial<WindowSettings>> {
     const uri = vscode.Uri.file(directory);
     const configPath = directory.endsWith('.code-workspace') ? uri : uri.with({ path: `${uri.path}/.vscode/settings.json` });
-    // console.log('[DEBUG] Reading config from path:', configPath.fsPath);
 
     let settings: any;
     try {
         const config = await vscode.workspace.fs.readFile(configPath);
         settings = JSON.parse(config.toString());
-        // console.log('[DEBUG] Config file contents:', JSON.stringify(settings, null, 2));
     } catch (error: any) {
-        console.error(`Failed to read config file at ${configPath.fsPath}: ${error.message}`);
-        settings = {};
+        // It's normal if the file doesn't exist or fails to read
+        return {};
     }
 
-    const fallbackWindowName = directory.split('/').pop() || 'Untitled Window';
     const windowColorSettings = directory.endsWith('.code-workspace') ? (settings['settings'] || {}) : settings;
-    // console.log('[DEBUG] Extracted windowColorSettings:', JSON.stringify(windowColorSettings, null, 2));
 
-    // Only generate random color if no color exists
-    const existingColor = windowColorSettings['chromiumDevKit.windowColor.mainColor'];
-    const mainColor = existingColor || generateRandomColor();
-    // console.log('[DEBUG] Using main color:', mainColor, '(existing:', existingColor, ')');
-
-    const result = {
-        windowName: windowColorSettings['chromiumDevKit.windowColor.name'] || fallbackWindowName,
-        mainColor: mainColor,
-        mainColorContrast: getContrastColor(mainColor),
-        isActivityBarColored: windowColorSettings['chromiumDevKit.windowColor.isActivityBarColored'] ?? false,
-        isTitleBarColored: windowColorSettings['chromiumDevKit.windowColor.isTitleBarColored'] ?? false,
-        isStatusBarColored: windowColorSettings['chromiumDevKit.windowColor.isStatusBarColored'] ?? true,
-        isWindowNameColored: windowColorSettings['chromiumDevKit.windowColor.isWindowNameColored'] ?? true,
-        isActiveItemsColored: windowColorSettings['chromiumDevKit.windowColor.isActiveItemsColored'] ?? true,
-        setWindowTitle: windowColorSettings['chromiumDevKit.windowColor.setWindowTitle'] ?? true
+    return {
+        windowName: windowColorSettings['chromiumDevKit.windowColor.name'],
+        mainColor: windowColorSettings['chromiumDevKit.windowColor.mainColor'],
+        isActivityBarColored: windowColorSettings['chromiumDevKit.windowColor.isActivityBarColored'],
+        isTitleBarColored: windowColorSettings['chromiumDevKit.windowColor.isTitleBarColored'],
+        isStatusBarColored: windowColorSettings['chromiumDevKit.windowColor.isStatusBarColored'],
+        isWindowNameColored: windowColorSettings['chromiumDevKit.windowColor.isWindowNameColored'],
+        isActiveItemsColored: windowColorSettings['chromiumDevKit.windowColor.isActiveItemsColored'],
+        setWindowTitle: windowColorSettings['chromiumDevKit.windowColor.setWindowTitle'],
+        autoRecover: windowColorSettings['chromiumDevKit.windowColor.autoRecover']
     };
-    // console.log('[DEBUG] readConfig returning:', JSON.stringify(result, null, 2));
-    return result;
+}
+
+export async function readConfig(directory: string): Promise<WindowSettings> {
+    // Try reading from local storage first
+    let config = await readConfigFromLocalStorage(directory);
+    
+    if (!config) {
+        // If not in local storage, try reading from .vscode/settings.json (backward compatibility)
+        const legacyConfig = await readConfigFromWorkspaceFile(directory);
+        
+        const fallbackWindowName = directory.split('/').pop() || 'Untitled Window';
+        const mainColor = legacyConfig.mainColor || generateRandomColor();
+        
+        config = {
+            windowName: legacyConfig.windowName || fallbackWindowName,
+            mainColor: mainColor,
+            mainColorContrast: getContrastColor(mainColor),
+            isActivityBarColored: legacyConfig.isActivityBarColored ?? false,
+            isTitleBarColored: legacyConfig.isTitleBarColored ?? false,
+            isStatusBarColored: legacyConfig.isStatusBarColored ?? true,
+            isWindowNameColored: legacyConfig.isWindowNameColored ?? true,
+            isActiveItemsColored: legacyConfig.isActiveItemsColored ?? true,
+            setWindowTitle: legacyConfig.setWindowTitle ?? true,
+            autoRecover: legacyConfig.autoRecover ?? true
+        };
+        
+        // If we got valid data from legacy config, migrate to local storage
+        if (legacyConfig.mainColor) {
+            await saveConfigToLocalStorage(directory, config);
+            console.log(`[Window Color] Migrated configuration from .vscode/settings.json to local storage for: ${directory}`);
+        } else {
+            // If no legacy config, save the newly generated config
+            await saveConfigToLocalStorage(directory, config);
+        }
+    }
+    
+    // config is guaranteed to be non-null now
+    return config!;
 }
 
 export async function saveWindowReference(reference: WindowReference): Promise<void> {
@@ -143,29 +217,12 @@ export async function loadWorkspaceConfig(directory: string): Promise<WindowSett
     }
 }
 
+/**
+ * @deprecated This function is deprecated, configuration is now saved to local storage instead of workspace settings
+ */
 export async function saveToWorkspaceConfig(key: string, value: string | boolean): Promise<boolean> {
-    // console.log('[DEBUG] saveToWorkspaceConfig called with key:', key, 'value:', value);
-    const config = vscode.workspace.getConfiguration('chromiumDevKit');
-    const fullKey = `windowColor.${key}`;
-
-    try {
-        // Check if the configuration key is registered by inspecting it
-        const inspection = config.inspect(fullKey);
-        if (!inspection) {
-            console.warn(`[Window Color] Configuration key "${fullKey}" is not registered in package.json. Skipping write.`);
-            return false;
-        }
-
-        await config.update(fullKey, value, vscode.ConfigurationTarget.Workspace);
-        // console.log('[DEBUG] saveToWorkspaceConfig completed for key:', key);
-        return true;
-    } catch (error: any) {
-        // Don't throw errors during configuration write - just log and continue
-        // This prevents extension activation failure during upgrades
-        console.error(`[Window Color] Failed to write configuration "${fullKey}": ${error.message}`);
-        console.error('[Window Color] Extension will continue with in-memory defaults');
-        return false;
-    }
+    console.warn(`[Window Color] saveToWorkspaceConfig is deprecated. Configuration is now saved to local storage.`);
+    return true;
 }
 
 export async function saveWorkspaceToGroup(groupName: string, workspace: WindowReference): Promise<void> {

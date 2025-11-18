@@ -5,6 +5,64 @@ All notable changes to the "Chromium Dev Kit" extension will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2025-11-18
+
+### Fixed
+- **Window Color Configuration Persistence Issue**: Migrated from workspace settings to local storage
+  - Resolved intermittent configuration loss issue reported by users
+  - Window color settings now stored in VSCode's extension global storage instead of `.vscode/settings.json`
+  - Configuration no longer written to project files, avoiding git conflicts and accidental commits
+  - Per-repository settings maintained using workspace path as storage key
+  - Automatic migration from legacy `.vscode/settings.json` configuration for backward compatibility
+  - Configuration persists across VSCode restarts and workspace reloads
+
+- **Auto-Recovery of Color Customizations**: Added smart detection and re-application
+  - Automatically detects when `workbench.colorCustomizations` is cleared or deleted
+  - Re-applies color customizations from local storage when `settings.json` is removed
+  - Added configuration change listener to monitor and restore color settings
+  - Ensures colors are always applied even after manual settings.json deletion
+  - Workspace folder change detection for proper config switching
+  - **User-controllable**: New `chromiumDevKit.windowColor.autoRecover` setting (default: enabled)
+  - Users can disable auto-recovery if they prefer manual control
+
+### Added
+- **Auto-Recovery Control Setting**: New configuration option for user control
+  - `chromiumDevKit.windowColor.autoRecover` (default: `true`)
+  - Allows users to disable automatic color recovery if desired
+  - Provides flexibility for users who want manual control over color configurations
+  - Respects user preference while maintaining smart defaults
+
+### Changed
+- **Storage Architecture**: Window Color module now uses extension storage API
+  - `saveConfigToLocalStorage()`: New function to save settings to VSCode's globalState
+  - `readConfigFromLocalStorage()`: Reads settings from extension storage
+  - `readConfigFromWorkspaceFile()`: Legacy fallback for migrating old configurations
+  - `initializeStorage()`: Must be called during activation to initialize storage context
+  - Deprecated `saveToWorkspaceConfig()`: No longer writes to workspace settings
+  - Module-level state management for `currentWorkspace` and `currentConfig`
+  - Added `onDidChangeConfiguration` listener for `workbench.colorCustomizations` monitoring
+  - Added `onDidChangeWorkspaceFolders` listener for workspace switching
+  - Auto-recovery logic now checks user configuration before applying
+
+### Technical Improvements
+- Added extension context management for storage operations
+- Implemented automatic configuration migration from workspace files to local storage
+- Enhanced error handling and logging for storage operations
+- Preserved backward compatibility with existing workspace configurations
+- Cleaner separation between visual theme settings (still in workspace) and configuration data (in local storage)
+- Smart detection algorithm to check if color customizations are present
+- Automatic re-application when customizations are missing
+
+### Benefits
+- ✅ Configuration no longer lost when `.vscode/settings.json` is modified or deleted
+- ✅ No git conflicts with team members' window color preferences
+- ✅ Settings remain local to each developer while still being repository-specific
+- ✅ Reduced workspace file clutter
+- ✅ Better alignment with VSCode extension best practices
+- ✅ **Colors automatically restore even after settings.json deletion** (can be disabled)
+- ✅ **Seamless experience when switching between workspaces**
+- ✅ **User-controllable auto-recovery** for maximum flexibility
+
 ## [0.4.2] - 2025-11-12
 
 ### Added
@@ -173,6 +231,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Version History Summary
 
+- **0.5.x**: Window Color configuration storage optimization, auto-recovery mechanism
 - **0.4.x**: Modular architecture, window color & name customization module integration
 - **0.3.x**: Documentation improvements, IDL support, enhanced user experience
 - **0.2.x**: Configuration enhancements, date formatting, validation

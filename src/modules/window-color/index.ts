@@ -10,7 +10,9 @@ import {
     applyColorCustomizations,
     readConfig,
     saveWindowReference,
-    saveToWorkspaceConfig
+    saveToWorkspaceConfig,
+    saveConfigToLocalStorage,
+    initializeStorage
 } from './services/workspaces';
 import { getWorkspaceWebview } from './views/workspace';
 
@@ -24,6 +26,7 @@ export type WindowSettings = {
     isWindowNameColored: boolean;
     isActiveItemsColored: boolean;
     setWindowTitle: boolean;
+    autoRecover: boolean;
 }
 
 export type WindowReference = {
@@ -37,6 +40,8 @@ export type WindowGroup = {
 
 let workspaceStatusbar: vscode.StatusBarItem;
 let isInitializing = true;
+let currentWorkspace: string;
+let currentConfig: WindowSettings;
 
 /**
  * Window Color Module
@@ -45,8 +50,10 @@ let isInitializing = true;
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
     console.log('Window Color module activated');
 
+    // Initialize storage with extension context
+    initializeStorage(context);
+
     // Check if we have a workspace file (.code-workspace)
-    let currentWorkspace: string;
     if (vscode.workspace.workspaceFile) {
         currentWorkspace = vscode.workspace.workspaceFile.fsPath;
     } else {
@@ -58,61 +65,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         return;
     }
 
-    let currentConfig = await readConfig(currentWorkspace);
-
-    // Try to save default values if they don't exist
-    // Wrapped in try-catch to prevent activation failure during upgrades
-    const workspaceConfig = vscode.workspace.getConfiguration('chromiumDevKit');
-    const needsDefaults = !workspaceConfig.get('windowColor.mainColor') ||
-                         workspaceConfig.get('windowColor.isStatusBarColored') === undefined ||
-                         workspaceConfig.get('windowColor.isWindowNameColored') === undefined ||
-                         workspaceConfig.get('windowColor.isActiveItemsColored') === undefined ||
-                         workspaceConfig.get('windowColor.setWindowTitle') === undefined;
-
-    if (needsDefaults) {
-        try {
-            const savePromises = [];
-
-            if (!workspaceConfig.get('windowColor.mainColor') && currentConfig.mainColor) {
-                savePromises.push(saveToWorkspaceConfig('mainColor', currentConfig.mainColor));
-            }
-            if (workspaceConfig.get('windowColor.isStatusBarColored') === undefined) {
-                savePromises.push(saveToWorkspaceConfig('isStatusBarColored', currentConfig.isStatusBarColored));
-            }
-            if (workspaceConfig.get('windowColor.isWindowNameColored') === undefined) {
-                savePromises.push(saveToWorkspaceConfig('isWindowNameColored', currentConfig.isWindowNameColored));
-            }
-            if (workspaceConfig.get('windowColor.isActiveItemsColored') === undefined) {
-                savePromises.push(saveToWorkspaceConfig('isActiveItemsColored', currentConfig.isActiveItemsColored));
-            }
-            if (workspaceConfig.get('windowColor.setWindowTitle') === undefined) {
-                savePromises.push(saveToWorkspaceConfig('setWindowTitle', currentConfig.setWindowTitle));
-            }
-
-            const results = await Promise.all(savePromises);
-            const successCount = results.filter(r => r).length;
-            const failCount = results.filter(r => !r).length;
-
-            if (failCount > 0) {
-                console.warn(`[Window Color] ${failCount} configuration write(s) failed during activation. Extension will use in-memory defaults.`);
-                // Show a one-time informational message for upgrades
-                vscode.window.showInformationMessage(
-                    'Chromium Dev Kit: Window Color configuration may need manual setup. Please open settings to configure.',
-                    'Open Settings'
-                ).then(selection => {
-                    if (selection === 'Open Settings') {
-                        vscode.commands.executeCommand('chromiumDevKit.openWindowColorSettings');
-                    }
-                });
-            } else {
                 currentConfig = await readConfig(currentWorkspace);
-            }
-        } catch (error: any) {
-            // Continue activation even if default writing fails completely
-            console.error(`[Window Color] Failed to write default configuration: ${error.message}`);
-            console.error('[Window Color] Continuing with in-memory defaults. Extension will still function.');
-        }
-    }
+    
+    // Save initial configuration to local storage (if not already there)
+    await saveConfigToLocalStorage(currentWorkspace, currentConfig);
 
     // Create status bar item for window name
     workspaceStatusbar = vscode.window.createStatusBarItem(
@@ -138,15 +94,59 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     isInitializing = false;
 
-    // Listen for configuration changes
+    // Listen for workbench.colorCustomizations changes
+    // Re-apply if deleted or cleared (e.g., when settings.json is deleted), based on user configuration
     context.subscriptions.push(
         vscode.workspace.onDidChangeConfiguration(async (e) => {
-            if (e.affectsConfiguration('chromiumDevKit.windowColor') && !isInitializing) {
-                const updatedConfig = await readConfig(currentWorkspace);
-                const updatedCustomizations = generateColorCustomizations(updatedConfig);
-                await applyColorCustomizations(updatedCustomizations);
-                updateWorkspaceStatusbar(workspaceStatusbar, updatedConfig);
-                updateWindowTitle(updatedConfig);
+            if (e.affectsConfiguration('workbench.colorCustomizations')) {
+                // Check if auto-recovery is enabled (read from local storage configuration)
+                const autoRecover = currentConfig?.autoRecover ?? true;
+                
+                if (!autoRecover) {
+                    console.log('[Window Color] Auto-recovery is disabled by user, skipping color restoration');
+                    return;
+                }
+                
+                // Check if our color customizations still exist
+                const config = vscode.workspace.getConfiguration();
+                const colorCustomizations = config.get<any>('workbench.colorCustomizations') || {};
+                
+                // Check if key color configurations exist
+                const hasOurCustomizations = 
+                    colorCustomizations['statusBar.background'] !== undefined ||
+                    colorCustomizations['titleBar.activeBackground'] !== undefined ||
+                    colorCustomizations['activityBar.background'] !== undefined;
+                
+                // If our customizations don't exist, re-apply them
+                if (!hasOurCustomizations && currentConfig) {
+                    console.log('[Window Color] Color customizations were cleared, auto-recovering from local storage...');
+                    const customizations = generateColorCustomizations(currentConfig);
+                    await applyColorCustomizations(customizations);
+                    updateWindowTitle(currentConfig);
+                }
+            }
+        })
+    );
+
+    // Listen for workspace folder changes (when switching workspaces)
+    context.subscriptions.push(
+        vscode.workspace.onDidChangeWorkspaceFolders(async () => {
+            let newWorkspace: string;
+            if (vscode.workspace.workspaceFile) {
+                newWorkspace = vscode.workspace.workspaceFile.fsPath;
+            } else {
+                newWorkspace = vscode.workspace.workspaceFolders?.[0].uri.fsPath || '';
+            }
+
+            if (newWorkspace && newWorkspace !== currentWorkspace) {
+                console.log(`[Window Color] Workspace changed from ${currentWorkspace} to ${newWorkspace}`);
+                currentWorkspace = newWorkspace;
+                currentConfig = await readConfig(currentWorkspace);
+                
+                const customizations = generateColorCustomizations(currentConfig);
+                await applyColorCustomizations(customizations);
+                updateWorkspaceStatusbar(workspaceStatusbar, currentConfig);
+                updateWindowTitle(currentConfig);
             }
         })
     );
@@ -178,35 +178,25 @@ async function createWindowSettingsWebview(context: vscode.ExtensionContext, dir
                 let editingIsCurrentWorkspace = directory === vscode.workspace.workspaceFolders?.[0].uri.fsPath;
                 let newProps: WindowSettings = message.props;
 
+                // Update mainColorContrast
+                newProps.mainColorContrast = getContrastColor(newProps.mainColor);
+
                 const webviewCustomizations = generateColorCustomizations(newProps);
                 applyColorCustomizations(webviewCustomizations);
 
                 if (editingIsCurrentWorkspace) {
                     updateWorkspaceStatusbar(workspaceStatusbar, newProps);
                     updateWindowTitle(newProps);
+                    // Update global currentConfig so listeners can read the latest autoRecover value
+                    currentConfig = newProps;
                 }
 
                 try {
-                    const savePromises = [
-                        saveToWorkspaceConfig('name', newProps.windowName),
-                        saveToWorkspaceConfig('mainColor', newProps.mainColor),
-                        saveToWorkspaceConfig('isActivityBarColored', newProps.isActivityBarColored),
-                        saveToWorkspaceConfig('isTitleBarColored', newProps.isTitleBarColored),
-                        saveToWorkspaceConfig('isStatusBarColored', newProps.isStatusBarColored),
-                        saveToWorkspaceConfig('isWindowNameColored', newProps.isWindowNameColored),
-                        saveToWorkspaceConfig('isActiveItemsColored', newProps.isActiveItemsColored),
-                        saveToWorkspaceConfig('setWindowTitle', newProps.setWindowTitle)
-                    ];
+                    // Save configuration to local storage
+                    await saveConfigToLocalStorage(directory, newProps);
+                    console.log(`[Window Color] Configuration saved successfully for: ${directory}`);
 
-                    const results = await Promise.all(savePromises);
-                    const failCount = results.filter(r => !r).length;
-
-                    if (failCount > 0) {
-                        vscode.window.showWarningMessage(
-                            `Chromium Dev Kit: ${failCount} setting(s) could not be saved. Changes are applied visually but may not persist.`
-                        );
-                    }
-
+                    // Save workspace reference to global configuration
                     const reference: WindowReference = {
                         directory: directory
                     };

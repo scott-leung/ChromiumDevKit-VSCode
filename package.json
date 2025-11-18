@@ -2,7 +2,7 @@
   "name": "chromium-dev-kit",
   "displayName": "Chromium Dev Kit",
   "description": "Development toolkit for Chromium projects with window customization: banner comments, header guards, .mojom/.idl support, and window color & name management",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "publisher": "ScottLeung",
   "engines": {
     "vscode": "^1.75.0"
@@ -198,6 +198,11 @@
           "type": "boolean",
           "default": true,
           "markdownDescription": "是否将窗口名称设置为 VSCode 窗口标题。\n\nWhether to set the window name as the VSCode window title."
+        },
+        "chromiumDevKit.windowColor.autoRecover": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "当 `workbench.colorCustomizations` 被清空或删除时，是否自动从本地存储恢复颜色配置。\n\n**默认启用 / Enabled by default**: 当 `.vscode/settings.json` 被删除或颜色配置被清空时，扩展会自动重新应用颜色。\n\n**禁用此选项 / Disable this option**: 如果您希望手动控制颜色配置，可以关闭自动恢复功能。\n\n---\n\nWhether to automatically recover color configurations from local storage when `workbench.colorCustomizations` is cleared or deleted.\n\n**Enabled by default**: When `.vscode/settings.json` is deleted or color configurations are cleared, the extension will automatically re-apply colors.\n\n**Disable this option**: If you prefer to manually control color configurations, you can turn off auto-recovery."
         },
         "chromiumDevKit.windowColor.workspaces": {
           "type": "array",

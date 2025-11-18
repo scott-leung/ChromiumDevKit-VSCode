@@ -189,9 +189,24 @@ export function getWorkspaceWebview(args: WindowSettings, version?: string): str
             </div>
         </div>
 
+        <div class="group">
+            <label>Advanced Settings:</label>
+
+            <div class="group-compact">
+                <div class="toggle-container">
+                    <input type="checkbox" id="autoRecover" ${args.autoRecover ? 'checked' : ''}>
+                    <label for="autoRecover">Auto-Recover Colors (自动恢复颜色)</label>
+                </div>
+                <p style="font-size: 0.75rem; color: var(--vscode-descriptionForeground); margin: 4px 0 0 24px; line-height: 1.4;">
+                    Automatically restore colors when settings.json is deleted.<br/>
+                    当 settings.json 被删除时自动恢复颜色配置。
+                </p>
+            </div>
+        </div>
+
         <div style="margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--vscode-input-border); text-align: center;">
             <p style="font-size: 0.8rem; color: var(--vscode-descriptionForeground); margin: 0;">
-                Chromium Dev Kit v${version || '0.3.2'}
+                Chromium Dev Kit v${version || '0.5.0'}
             </p>
         </div>
 
@@ -207,6 +222,7 @@ export function getWorkspaceWebview(args: WindowSettings, version?: string): str
         const isStatusBarColored = document.getElementById('isStatusBarColored');
         const isActiveItemsColored = document.getElementById('isActiveItemsColored');
         const setWindowTitle = document.getElementById('setWindowTitle');
+        const autoRecover = document.getElementById('autoRecover');
 
         let props = {
             windowName: windowNameInput.value,
@@ -216,7 +232,8 @@ export function getWorkspaceWebview(args: WindowSettings, version?: string): str
             isWindowNameColored: isProjectNameColored.checked,
             isStatusBarColored: isStatusBarColored.checked,
             isActiveItemsColored: isActiveItemsColored.checked,
-            setWindowTitle: setWindowTitle.checked
+            setWindowTitle: setWindowTitle.checked,
+            autoRecover: autoRecover.checked
         };
 
         windowNameInput.addEventListener('input', () => {
@@ -257,6 +274,11 @@ export function getWorkspaceWebview(args: WindowSettings, version?: string): str
 
         setWindowTitle.addEventListener('change', () => {
             props.setWindowTitle = setWindowTitle.checked;
+            postMessageDebounced({ command: 'setProps', props });
+        });
+
+        autoRecover.addEventListener('change', () => {
+            props.autoRecover = autoRecover.checked;
             postMessageDebounced({ command: 'setProps', props });
         });
 

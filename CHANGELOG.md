@@ -5,7 +5,19 @@ All notable changes to the "Chromium Dev Kit" extension will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.5.0] - 2025-11-18
+## [0.5.0] - 2025-11-19
+
+### Added
+- **Smart Chromium Root Detection**: Added capability to detect Chromium root directory when opening subdirectories
+  - Automatically identifies Chromium root even when VS Code workspace is a subdirectory (e.g., `src/chrome`)
+  - Ensures Header Guards are generated relative to the Chromium root (e.g., `CHROME_BROWSER_...`)
+  - Ensures `#include` paths are correctly calculated relative to the Chromium root
+  - Uses `.gn`, `.gclient`, and specific directory markers (`chrome`, `content`) for reliable detection
+- **Auto-Recovery Control Setting**: New configuration option for user control
+  - `chromiumDevKit.windowColor.autoRecover` (default: `true`)
+  - Allows users to disable automatic color recovery if desired
+  - Provides flexibility for users who want manual control over color configurations
+  - Respects user preference while maintaining smart defaults
 
 ### Fixed
 - **Window Color Configuration Persistence Issue**: Migrated from workspace settings to local storage
@@ -24,13 +36,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Workspace folder change detection for proper config switching
   - **User-controllable**: New `chromiumDevKit.windowColor.autoRecover` setting (default: enabled)
   - Users can disable auto-recovery if they prefer manual control
-
-### Added
-- **Auto-Recovery Control Setting**: New configuration option for user control
-  - `chromiumDevKit.windowColor.autoRecover` (default: `true`)
-  - Allows users to disable automatic color recovery if desired
-  - Provides flexibility for users who want manual control over color configurations
-  - Respects user preference while maintaining smart defaults
 
 ### Changed
 - **Storage Architecture**: Window Color module now uses extension storage API

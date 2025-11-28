@@ -260,8 +260,15 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
           async (progressReporter) => {
             try {
               const indexed = await indexService.buildFullIndex(progressReporter, true);
+
+              // Show statistics (same format as rebuild index)
+              const stats = await indexService.getIndexStats();
+
               vscode.window.showInformationMessage(
-                `Successfully built index (${indexed} files indexed).`
+                `Index built successfully!\n\n` +
+                `📁 Files: ${stats.grdCount} GRD, ${stats.grdpCount} GRDP, ${stats.xtbCount} XTB\n` +
+                `📝 Messages: ${stats.messageCount}\n` +
+                `🌐 Translations: ${stats.translationCount}`
               );
             } catch (error) {
               console.error('Failed to build index:', error);

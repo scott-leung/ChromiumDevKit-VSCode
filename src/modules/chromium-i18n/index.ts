@@ -245,12 +245,30 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     if (stats.grdCount === 0) {
       const answer = await vscode.window.showInformationMessage(
         'No Chromium I18n index found. Would you like to build it now?',
-        'Build Index',
+        'Index Now',
         'Later'
       );
 
-      if (answer === 'Build Index') {
-        vscode.commands.executeCommand('chromiumI18n.rebuildIndex');
+      if (answer === 'Index Now') {
+        // Execute indexing directly without confirmation (first-time indexing)
+        await vscode.window.withProgress(
+          {
+            location: vscode.ProgressLocation.Notification,
+            title: 'Chromium I18n: Building index',
+            cancellable: false,
+          },
+          async (progressReporter) => {
+            try {
+              const indexed = await indexService.buildFullIndex(progressReporter, true);
+              vscode.window.showInformationMessage(
+                `Successfully built index (${indexed} files indexed).`
+              );
+            } catch (error) {
+              console.error('Failed to build index:', error);
+              vscode.window.showErrorMessage(`Failed to build index: ${error}`);
+            }
+          }
+        );
       }
     } else {
       console.log(

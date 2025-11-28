@@ -1,0 +1,11 @@
+specs/
+tests/
+coverage/
+.vscode/
+.vscode-test/
+.vscode-test-web/
+node_modules/
+*.log
+*.tsbuildinfo
+.DS_Store
+Thumbs.db

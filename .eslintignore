@@ -1,0 +1,9 @@
+node_modules/
+out/
+dist/
+build/
+coverage/
+.vscode-test/
+.vscode-test-web/
+tests/chromium-i18n/fixtures/
+*.min.js

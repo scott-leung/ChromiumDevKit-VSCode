@@ -2,7 +2,7 @@
   "name": "chromium-dev-kit",
   "displayName": "Chromium Dev Kit",
   "description": "Development toolkit for Chromium projects with window customization: banner comments, header guards, .mojom/.idl support, and window color & name management",
-  "version": "0.5.0",
+  "version": "1.0.0",
   "publisher": "ScottLeung",
   "engines": {
     "vscode": "^1.75.0"
@@ -15,7 +15,18 @@
     "onStartupFinished",
     "onLanguage:cpp"
   ],
-  "main": "./out/extension.js",
+  "main": "./dist/extension.js",
+  "files": [
+    "dist/**",
+    "node_modules/@vscode/sqlite3/lib/**",
+    "node_modules/@vscode/sqlite3/build/Release/vscode-sqlite3.node",
+    "node_modules/@vscode/sqlite3/LICENSE",
+    "node_modules/@vscode/sqlite3/package.json",
+    "CHANGELOG.md",
+    "README.md",
+    "logo.png",
+    "LICENSE.txt"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/scott-leung/ChromiumDevKit-VSCode"
@@ -62,8 +73,79 @@
       {
         "command": "chromiumDevKit.applyTemplate9",
         "title": "Chromium Dev Kit: Apply Template 9"
+      },
+      {
+        "command": "chromiumI18n.rebuildIndex",
+        "title": "Chromium I18n: Rebuild i18n Index",
+        "category": "Chromium I18n"
+      },
+      {
+        "command": "chromiumI18n.aiTranslate",
+        "title": "Chromium I18n: AI Translate to Target Language",
+        "category": "Chromium I18n"
+      },
+      {
+        "command": "chromiumI18n.search",
+        "title": "Chromium I18n: Search i18n Strings",
+        "category": "Chromium I18n"
+      },
+      {
+        "command": "chromiumI18n.detectUnused",
+        "title": "Chromium I18n: Detect Unused IDS",
+        "category": "Chromium I18n"
+      },
+      {
+        "command": "chromiumI18n.openDashboard",
+        "title": "Chromium I18n: Open i18n Dashboard",
+        "category": "Chromium I18n"
+      },
+      {
+        "command": "chromiumI18n.showDiff",
+        "title": "Chromium I18n: Show Translation Diff",
+        "category": "Chromium I18n"
+      },
+      {
+        "command": "chromiumI18n.jumpToDefinition",
+        "title": "Chromium I18n: Jump to Definition",
+        "category": "Chromium I18n"
+      },
+      {
+        "command": "chromiumI18n.jumpToTranslation",
+        "title": "Chromium I18n: Jump to Translation",
+        "category": "Chromium I18n"
+      },
+      {
+        "command": "chromiumI18n.toggleOverlay",
+        "title": "Chromium I18n: Toggle Translation Overlay",
+        "category": "Chromium I18n"
+      },
+      {
+        "command": "chromiumI18n.changeOverlayLanguage",
+        "title": "Chromium I18n: Change Overlay Language",
+        "category": "Chromium I18n"
+      },
+      {
+        "command": "chromiumI18n.createGrdMessage",
+        "title": "Chromium I18n: Create GRD Message",
+        "category": "Chromium I18n"
       }
     ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "chromiumI18n.createGrdMessage",
+          "when": "resourceExtname == .grd || resourceExtname == .grdp",
+          "group": "chromium-dev-kit@1"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "chromiumI18n.createGrdMessage",
+          "when": "resourceExtname == .grd || resourceExtname == .grdp",
+          "group": "chromium-dev-kit@1"
+        }
+      ]
+    },
     "configuration": {
       "title": "Chromium Dev Kit",
       "properties": {
@@ -244,6 +326,290 @@
               }
             }
           }
+        },
+        "chromiumI18n.overlay.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable translation overlay in code (ghost text)"
+        },
+        "chromiumI18n.overlay.mode": {
+          "type": "string",
+          "default": "always",
+          "enum": [
+            "always",
+            "hover",
+            "shortcut"
+          ],
+          "enumDescriptions": [
+            "Always show overlay",
+            "Show on hover (not implemented)",
+            "Toggle overlay with shortcut"
+          ],
+          "description": "Overlay display mode"
+        },
+        "chromiumI18n.overlay.style.color": {
+          "type": "string",
+          "default": "#888",
+          "description": "Overlay text color (hex)"
+        },
+        "chromiumI18n.overlay.style.backgroundColor": {
+          "type": "string",
+          "default": "transparent",
+          "description": "Overlay text background color"
+        },
+        "chromiumI18n.overlay.style.fontStyle": {
+          "type": "string",
+          "default": "italic",
+          "enum": [
+            "normal",
+            "italic",
+            "oblique"
+          ],
+          "description": "Overlay text font style"
+        },
+        "chromiumI18n.overlay.style.prefix": {
+          "type": "string",
+          "default": "[",
+          "description": "Overlay text prefix"
+        },
+        "chromiumI18n.overlay.style.suffix": {
+          "type": "string",
+          "default": "]",
+          "description": "Overlay text suffix"
+        },
+        "chromiumI18n.defaultLocale": {
+          "type": "string",
+          "default": "zh-CN",
+          "enum": [
+            "af",
+            "am",
+            "ar",
+            "as",
+            "az",
+            "be",
+            "bg",
+            "bn",
+            "bs",
+            "ca",
+            "cs",
+            "cy",
+            "da",
+            "de",
+            "el",
+            "en",
+            "en-GB",
+            "en-US",
+            "es",
+            "es-419",
+            "et",
+            "eu",
+            "fa",
+            "fi",
+            "fil",
+            "fr",
+            "fr-CA",
+            "gl",
+            "gu",
+            "he",
+            "hi",
+            "hr",
+            "hu",
+            "hy",
+            "id",
+            "is",
+            "it",
+            "iw",
+            "ja",
+            "ka",
+            "kk",
+            "km",
+            "kn",
+            "ko",
+            "ky",
+            "lo",
+            "lt",
+            "lv",
+            "mk",
+            "ml",
+            "mn",
+            "mr",
+            "ms",
+            "my",
+            "ne",
+            "nl",
+            "no",
+            "or",
+            "pa",
+            "pl",
+            "pt-BR",
+            "pt-PT",
+            "ro",
+            "ru",
+            "si",
+            "sk",
+            "sl",
+            "sq",
+            "sr",
+            "sr-Latn",
+            "sv",
+            "sw",
+            "ta",
+            "te",
+            "th",
+            "tr",
+            "uk",
+            "ur",
+            "uz",
+            "vi",
+            "zh-CN",
+            "zh-HK",
+            "zh-TW",
+            "zu"
+          ],
+          "enumDescriptions": [
+            "Afrikaans",
+            "አማርኛ (Amharic)",
+            "العربية (Arabic)",
+            "অসমীয়া (Assamese)",
+            "Azərbaycan (Azerbaijani)",
+            "Беларуская (Belarusian)",
+            "Български (Bulgarian)",
+            "বাংলা (Bengali)",
+            "Bosanski (Bosnian)",
+            "Català (Catalan)",
+            "Čeština (Czech)",
+            "Cymraeg (Welsh)",
+            "Dansk (Danish)",
+            "Deutsch (German)",
+            "Ελληνικά (Greek)",
+            "English",
+            "English (UK)",
+            "English (US)",
+            "Español (Spanish)",
+            "Español (Latinoamérica)",
+            "Eesti (Estonian)",
+            "Euskara (Basque)",
+            "فارسی (Persian)",
+            "Suomi (Finnish)",
+            "Filipino",
+            "Français (French)",
+            "Français (Canada)",
+            "Galego (Galician)",
+            "ગુજરાતી (Gujarati)",
+            "עברית (Hebrew)",
+            "हिन्दी (Hindi)",
+            "Hrvatski (Croatian)",
+            "Magyar (Hungarian)",
+            "Հայերեն (Armenian)",
+            "Bahasa Indonesia (Indonesian)",
+            "Íslenska (Icelandic)",
+            "Italiano (Italian)",
+            "עברית (Hebrew - iw code)",
+            "Japanese",
+            "ქართული (Georgian)",
+            "Қазақ (Kazakh)",
+            "ខ្មែរ (Khmer)",
+            "ಕನ್ನಡ (Kannada)",
+            "한국어 (Korean)",
+            "Кыргызча (Kyrgyz)",
+            "ລາວ (Lao)",
+            "Lietuvių (Lithuanian)",
+            "Latviešu (Latvian)",
+            "Македонски (Macedonian)",
+            "മലയാളം (Malayalam)",
+            "Монгол (Mongolian)",
+            "मराठी (Marathi)",
+            "Bahasa Melayu (Malay)",
+            "မြန်မာ (Burmese)",
+            "नेपाली (Nepali)",
+            "Nederlands (Dutch)",
+            "Norsk (Norwegian)",
+            "ଓଡ଼ିଆ (Odia)",
+            "ਪੰਜਾਬੀ (Punjabi)",
+            "Polski (Polish)",
+            "Português (Brasil)",
+            "Português (Portugal)",
+            "Română (Romanian)",
+            "Русский (Russian)",
+            "සිංහල (Sinhala)",
+            "Slovenčina (Slovak)",
+            "Slovenščina (Slovenian)",
+            "Shqip (Albanian)",
+            "Српски (Serbian)",
+            "Srpski (Serbian - Latin)",
+            "Svenska (Swedish)",
+            "Kiswahili (Swahili)",
+            "தமிழ் (Tamil)",
+            "తెలుగు (Telugu)",
+            "ไทย (Thai)",
+            "Türkçe (Turkish)",
+            "Українська (Ukrainian)",
+            "اردو (Urdu)",
+            "Oʻzbek (Uzbek)",
+            "Tiếng Việt (Vietnamese)",
+            "Simplified Chinese",
+            "Traditional Chinese (Hong Kong)",
+            "Traditional Chinese (Taiwan)",
+            "IsiZulu (Zulu)"
+          ],
+          "description": "Default locale"
+        },
+        "chromiumI18n.indexing.maxConcurrency": {
+          "type": "number",
+          "default": 5,
+          "minimum": 1,
+          "maximum": 20,
+          "description": "索引构建时的最大并发数\n\nMaximum concurrency for index building"
+        },
+        "chromiumI18n.ai.baseUrl": {
+          "type": "string",
+          "default": "https://api.openai.com/v1",
+          "description": "AI API 基础 URL（支持 OpenAI 兼容协议）\n\nAI API Base URL (Supports OpenAI compatible protocols)"
+        },
+        "chromiumI18n.ai.model": {
+          "type": "string",
+          "default": "gpt-5.1",
+          "description": "AI 模型名称\n\nAI Model Name"
+        },
+        "chromiumI18n.ai.timeout": {
+          "type": "number",
+          "default": 30000,
+          "description": "AI 请求超时时间（毫秒）\n\nAI Request Timeout (ms)"
+        },
+        "chromiumI18n.ai.qpsLimit": {
+          "type": "number",
+          "default": 3,
+          "minimum": 1,
+          "description": "AI 翻译请求的 QPS 限制，避免高频调用触发限流\n\nQPS limit for AI translation requests to avoid rate limiting"
+        },
+        "chromiumI18n.ai.apiKey": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "AI API Key（OpenAI 兼容）。填写后会存入 VS Code Secret Storage，并在设置中显示为掩码。\n\nAI API Key (OpenAI compatible). Stored in VS Code Secret Storage and displayed as a mask in settings.",
+          "scope": "application"
+        },
+        "chromiumI18n.ai.prompt": {
+          "type": "string",
+          "default": "You are a senior Chromium browser localization specialist. Translate Chromium GRIT ICU MessageFormat strings to {{lang}}. Strictly preserve all placeholders (e.g., {ATTEMPTS_LEFT}, {0}, {1}, <ph name=\"ERROR_MESSAGE\" />) and ICU syntax (plural/select branches and keys). Do not translate or rename placeholders; translate only user-facing text. Return only the translated string without quotes or explanations.",
+          "markdownDescription": "通用翻译 Prompt（使用 {{lang}} 占位符指代目标语言）\n\nGeneral Translation Prompt (Use {{lang}} placeholder for target language)"
+        },
+        "chromiumI18n.completion.autoInsertComment": {
+          "type": "boolean",
+          "default": false,
+          "description": "自动补全 IDS 后是否自动插入行尾注释\n\nAutomatically insert end-of-line comment after IDS completion"
+        },
+        "chromiumI18n.completion.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "是否启用 IDS 自动补全功能\n\nEnable IDS auto-completion"
+        },
+        "chromiumI18n.unusedDetection.excludePatterns": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "description": "未使用检测时排除的 IDS 名称模式（正则表达式）\n\nExclude patterns for unused IDS detection (Regex)"
         }
       }
     },
@@ -319,22 +685,70 @@
         "win": "ctrl+shift+9",
         "linux": "ctrl+shift+9",
         "when": "editorTextFocus && (editorLangId == cpp || resourceExtname == .mojom || resourceExtname == .idl)"
+      },
+      {
+        "command": "chromiumI18n.jumpToDefinition",
+        "key": "F12",
+        "when": "editorTextFocus && (editorLangId == cpp || editorLangId == objective-cpp)"
+      },
+      {
+        "command": "chromiumI18n.search",
+        "key": "cmd+shift+f12",
+        "mac": "cmd+shift+f12",
+        "win": "ctrl+shift+f12",
+        "linux": "ctrl+shift+f12",
+        "when": "workspaceFolderCount > 0"
+      },
+      {
+        "command": "chromiumI18n.toggleOverlay",
+        "key": "ctrl+shift+i",
+        "mac": "ctrl+shift+i",
+        "win": "ctrl+shift+i",
+        "linux": "ctrl+shift+i",
+        "when": "editorTextFocus && (resourceExtname == .h || resourceExtname == .cc || resourceExtname == .mm)"
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "chromiumI18n",
+          "title": "Chromium I18n",
+          "icon": "$(globe)"
+        }
+      ]
+    },
+    "views": {
+      "chromiumI18n": [
+        {
+          "id": "chromiumI18nDashboard",
+          "name": "i18n Dashboard",
+          "type": "webview"
+        }
+      ]
+    }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
+    "vscode:prepublish": "npm run build",
+    "build": "npm run compile && npm run bundle",
     "compile": "tsc -p ./",
+    "bundle": "esbuild src/extension.ts --bundle --platform=node --format=cjs --external:vscode --external:@vscode/sqlite3 --outfile=dist/extension.js --sourcemap --minify --target=node16",
     "watch": "tsc -watch -p ./",
     "lint": "eslint src --ext ts",
-    "package": "npm run compile && npx vsce package"
+    "package": "npm run build && npx vsce package"
   },
   "devDependencies": {
-    "@types/vscode": "^1.60.0",
     "@types/node": "16.x",
+    "@types/vscode": "^1.60.0",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
+    "esbuild": "^0.24.2",
     "eslint": "^8.0.0",
-    "typescript": "^4.4.0"
+    "typescript": "^5.4.0"
+  },
+  "dependencies": {
+    "@vscode/sqlite3": "^5.1.9-vscode",
+    "@ai-sdk/openai": "^2.0.72",
+    "ai": "^3.4.33",
+    "fast-xml-parser": "^5.3.2"
   }
 }

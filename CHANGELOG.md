@@ -5,6 +5,26 @@ All notable changes to the "Chromium Dev Kit" extension will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2025-11-27
+
+### Added
+- **Create GRD Message Command**: One-click message creation with AI Translation Preview
+  - `chromiumDevKit.chromiumI18n.createGrdMessage` command accessible from editor context menu and command palette
+  - Support for creating messages in both GRD and GRDP files
+  - Multi-language input support with automatic reverse translation to English
+  - AI-powered description and meaning extraction for non-English inputs
+  - Interactive AI Translation Preview window for reviewing translations before applying
+  - Real-time translation status updates (pending → success/failed) with progress indicators
+  - Inline validation of placeholders (`{VAR}`, `<ph>` tags, ICU syntax) with error messages
+  - User can edit, select/deselect languages, and retry failed translations
+  - Input language optimization - when input language is in target languages, original content is used directly (no redundant AI calls)
+  - Full GRDP support with automatic parent GRD resolution for XTB file location
+  - Batch translation to multiple languages with selective application
+  - Comprehensive error handling with user-friendly messages
+- **Dashboard usage search**: Search results now expose the "Search key usage in workspace" button (UI label displayed in Chinese), which opens VS Code search with the IDS pre-filled and scoped to `.h/.cc/.mm/.grd/.grdp` so you can verify existing references before adding new strings
+- **AI translation workflow documented**: README now details the AI translate command—language picker, OpenAI-compatible endpoint support (baseUrl/model/timeout/apiKey), prompt customization, Secret Storage, and XTB writes with XML escaping and friendly error handling
+- **I18n feature status summarized**: README now states delivered features (hover/definition, overlay, completion, indexing, dashboard, AI translation, Create GRD Message) and notes unused detection/translation diff still planned
+
 ## [0.5.0] - 2025-11-19
 
 ### Added
@@ -105,7 +125,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Implemented graceful degradation with in-memory defaults when configuration writes fail
   - Added informational messages guiding users to manually configure settings if needed
   - Extension now successfully activates even if configuration schema is not fully loaded during upgrades
-  - Resolved error: "CodeExpectedError: 没有注册配置 chromiumDevKit.windowColor.mainColor，因此无法写入 工作区设置"
+  - Resolved error: "CodeExpectedError: configuration chromiumDevKit.windowColor.mainColor was not registered, so workspace settings could not be written"
 
 ## [0.4.0] - 2025-11-12
 

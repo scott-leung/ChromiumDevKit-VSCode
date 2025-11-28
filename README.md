@@ -87,6 +87,21 @@ Choose which parts of VSCode to colorize:
 
 ---
 
+### Module 3: Chromium i18n (Internationalization)
+
+#### 🌐 Create GRD Message
+- **GUI-based creation**: Intuitive form for adding new messages to `.grd`/`.grdp` files
+- **AI-powered ID generation**: Automatically suggests GRIT IDs based on message content
+- **Smart hash calculation**: Ensures correct message IDs for translation files
+
+#### 🤖 AI Translation
+- **Context-aware translation**: Uses message description and meaning for accurate translations
+- **Batch processing**: Translate to multiple languages simultaneously
+- **Validation**: Automatically checks for placeholder consistency (e.g., `$1`, `$2`)
+- **Review Panel**: Preview, edit, and selectively apply translations before saving
+
+---
+
 ## 🎬 See It In Action
 
 ### Development Automation Demo

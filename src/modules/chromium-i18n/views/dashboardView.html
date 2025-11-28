@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="__CSP__">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chromium I18n Dashboard</title>
+    <style nonce="__NONCE__">
+      :root {
+        --bg: #0b1221;
+        --panel: rgba(255, 255, 255, 0.03);
+        --card: rgba(255, 255, 255, 0.06);
+        --accent: #4cc9f0;
+        --accent-strong: #b5179e;
+        --text: #e5e7eb;
+        --muted: #9ca3af;
+        --border: rgba(255, 255, 255, 0.08);
+        --shadow: 0 14px 44px rgba(0, 0, 0, 0.35);
+        --radius: 12px;
+        --transition: 0.18s ease;
+        font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        padding: 12px;
+        background: linear-gradient(135deg, #0b1221 0%, #0e152a 40%, #0b1221 100%);
+        color: var(--text);
+        min-height: 100vh;
+        font-size: 13px;
+      }
+
+      h1 { font-size: 15px; margin: 0; }
+      .section-title { font-size: 13px; color: var(--muted); letter-spacing: 0.4px; margin: 0 0 6px 0; }
+      .label { font-size: 12px; color: var(--muted); letter-spacing: 0.2px; }
+      .muted { color: var(--muted); }
+      .wrap { word-break: break-word; }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 12px;
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(6px);
+        margin-bottom: 12px;
+      }
+
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 10px;
+        flex-wrap: nowrap;
+      }
+
+      .header .title {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: nowrap;
+        min-width: 0;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 9px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, rgba(76, 201, 240, 0.18), rgba(181, 23, 158, 0.22));
+        border: 1px solid var(--border);
+        color: var(--text);
+        font-size: 12px;
+        letter-spacing: 0.3px;
+      }
+
+      .stat-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 8px;
+      }
+
+      .stat-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        transition: transform var(--transition), border-color var(--transition);
+      }
+
+      .stat-card:hover { transform: translateY(-1px); border-color: rgba(76, 201, 240, 0.4); }
+      .stat-label { font-size: 12px; color: var(--muted); }
+      .stat-value { font-size: 18px; font-weight: 700; }
+
+      .progress {
+        height: 8px;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.07);
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+      }
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--accent) 0%, var(--accent-strong) 100%);
+        border-radius: inherit;
+        transition: width 0.3s ease;
+      }
+
+      .search {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+      }
+      .search input, .search select {
+        flex: 1;
+        min-width: 140px;
+        padding: 8px 10px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+        font-size: 13px;
+      }
+      .search button {
+        padding: 8px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: #1f2a44;
+        color: #e5e7eb;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 13px;
+      }
+      .search button:hover { background: #243251; }
+      .icon-btn { width: 36px; padding: 8px 0; font-weight: 600; }
+
+      .file-list { display: flex; flex-direction: column; gap: 6px; max-height: 280px; overflow-y: auto; padding-right: 4px; }
+      .file-card {
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.02);
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        word-break: break-word;
+      }
+      .file-meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+      .pill {
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-size: 12px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.08);
+        white-space: nowrap;
+      }
+
+      .ghost {
+        background: transparent;
+        border: 1px dashed var(--border);
+        color: var(--text);
+        padding: 6px 10px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 12px;
+      }
+
+      .list { display: grid; gap: 6px; }
+      .list-item {
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.02);
+        display: grid;
+        gap: 6px;
+        word-break: break-word;
+      }
+      .search-item { cursor: pointer; }
+      .translation { color: #6ddaff; font-weight: 600; }
+      .highlight { background: rgba(255, 200, 64, 0.35); color: #fff9db; padding: 0 3px; border-radius: 4px; }
+      .details { display: none; }
+      .search-controls { display: flex; gap: 8px; justify-content: flex-end; margin-bottom: 8px; flex-wrap: wrap; }
+      .mt-6 { margin-top: 6px; }
+      .mt-8 { margin-top: 8px; }
+      .justify-end { justify-content: flex-end; }
+
+      .collapsible { padding: 0; overflow: hidden; }
+      .collapsible summary {
+        padding: 12px;
+        cursor: pointer;
+        list-style: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: var(--text);
+        font-size: 13px;
+      }
+      .collapsible summary::-webkit-details-marker { display: none; }
+      .collapsible .panel-content { padding: 0 12px 12px 12px; }
+
+      .empty {
+        border: 1px dashed var(--border);
+        padding: 12px;
+        border-radius: var(--radius);
+        color: var(--muted);
+        text-align: center;
+        font-size: 12px;
+      }
+
+      .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+      .spinner {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        vertical-align: -2px;
+      }
+
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+
+      @media (max-width: 480px) {
+        body { padding: 10px; font-size: 12px; }
+        h1 { font-size: 15px; }
+        .stat-value { font-size: 16px; }
+        .panel { padding: 10px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <div class="title">
+        <h1>I18n Dashboard</h1>
+        <span class="badge" id="languageBadge">Loading...</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="section-title">Search IDS / text</div>
+      <div class="search">
+        <input id="searchInput" type="text" placeholder="Enter IDS name or English/translation keyword" />
+        <select id="languageSelect"></select>
+        <button id="searchBtn">Search</button>
+        <button id="refreshBtn" class="icon-btn" title="Refresh">↻</button>
+      </div>
+      <div id="searchStatus" class="label"></div>
+    </div>
+
+    <div class="panel">
+      <div class="section-title">Search results</div>
+      <div class="search-controls">
+        <button class="ghost" id="expandAll">Expand all</button>
+        <button class="ghost" id="collapseAll">Collapse all</button>
+      </div>
+      <div id="searchResults" class="list"></div>
+    </div>
+
+    <details class="panel collapsible" id="filesSection">
+      <summary>File distribution (GRD/GRDP)</summary>
+      <div class="panel-content">
+        <div class="file-list" id="fileList"></div>
+        <div class="section-title mt-8">Messages in file</div>
+        <div id="fileMessages" class="list"></div>
+      </div>
+    </details>
+
+    <details class="panel collapsible" id="statsSection">
+      <summary>Translation coverage & missing translations</summary>
+      <div class="panel-content" id="statsContent">
+        <div id="statsStatus" class="label">Load coverage after expanding</div>
+        <div class="stat-cards mt-8" id="statCards"></div>
+        <div class="section-title mt-8">Missing translations</div>
+        <div id="missingList" class="list"></div>
+      </div>
+    </details>
+
+    <script nonce="__NONCE__">
+      (function() {
+        const vscode = acquireVsCodeApi();
+        const state = { overview: null, activeLanguage: '' };
+        const statCards = document.getElementById('statCards');
+        const fileList = document.getElementById('fileList');
+        const missingList = document.getElementById('missingList');
+        const fileMessages = document.getElementById('fileMessages');
+        const searchResults = document.getElementById('searchResults');
+        const languageBadge = document.getElementById('languageBadge');
+        const statsSection = document.getElementById('statsSection');
+        const statsStatus = document.getElementById('statsStatus');
+        const searchStatus = document.getElementById('searchStatus');
+        const searchInput = document.getElementById('searchInput');
+        const languageSelect = document.getElementById('languageSelect');
+        let statsLoaded = false;
+        let statsRequested = false;
+        let searchLoading = false;
+        let lastQuery = '';
+        let userSelectedLang = false;
+
+        function renderStats(stats) {
+          statCards.innerHTML = '';
+          if (!stats || stats.length === 0) {
+            statCards.innerHTML = '<div class="empty">No translation stats available</div>';
+            return;
+          }
+
+          stats.forEach((stat) => {
+            const percentage = Math.round((stat.coverage || 0) * 10) / 10;
+            const card = document.createElement('div');
+            card.className = 'stat-card';
+            card.innerHTML =
+              '<div class="stat-label">' + stat.lang + '</div>' +
+              '<div class="inline">' +
+                '<div class="stat-value">' + percentage.toFixed(1) + '%</div>' +
+                '<div class="pill">' + stat.translated_count + '/' + stat.total_messages + '</div>' +
+              '</div>' +
+              '<div class="progress"><div class="progress-fill" data-width="' + Math.min(100, percentage) + '"></div></div>';
+            const fill = card.querySelector('.progress-fill');
+            if (fill) {
+              fill.style.width = Math.min(100, percentage) + '%';
+            }
+            statCards.appendChild(card);
+          });
+        }
+
+        function renderFiles(files) {
+          fileList.innerHTML = '';
+          if (!files || files.length === 0) {
+            fileList.innerHTML = '<div class="empty">No GRD/GRDP files. Please build the index first.</div>';
+            return;
+          }
+
+          files.forEach((file) => {
+            const card = document.createElement('div');
+            card.className = 'file-card';
+            card.innerHTML =
+              '<div class="file-meta">' +
+                '<div>' +
+                  '<div class="label">' + file.type.toUpperCase() + '</div>' +
+                  '<div class="list-title wrap">' + file.relativePath + '</div>' +
+                '</div>' +
+                '<div class="pill">' + file.messageCount + ' entries</div>' +
+              '</div>' +
+              '<div class="file-actions">' +
+                '<button class="ghost" data-path="' + file.path + '">View messages</button>' +
+              '</div>';
+
+            card.querySelector('button').addEventListener('click', () => {
+              vscode.postMessage({ type: 'loadFile', path: file.path, lang: state.activeLanguage });
+            });
+
+            fileList.appendChild(card);
+          });
+        }
+
+        function renderMissing(list) {
+          missingList.innerHTML = '';
+          if (!list || list.length === 0) {
+            missingList.innerHTML = '<div class="empty">No missing translations for the current language</div>';
+            return;
+          }
+
+          list.forEach((item) => {
+            const row = document.createElement('div');
+            row.className = 'list-item';
+            row.innerHTML =
+              '<div class="list-title wrap"><span>' + item.name + '</span><span class="pill">Missing</span></div>' +
+              '<div class="label wrap">' + (item.filePath || '') + '</div>' +
+              '<div class="muted wrap">' + (item.english || '') + '</div>' +
+              '<div class="row">' +
+                '<button class="ghost" data-action="openDefinition">Go to definition</button>' +
+                '<button class="ghost" data-action="openTranslation">Go to translation</button>' +
+              '</div>';
+
+            row.querySelectorAll('button').forEach((btn) => {
+              btn.addEventListener('click', () => {
+                const action = btn.getAttribute('data-action');
+                vscode.postMessage({
+                  type: action === 'openDefinition' ? 'openDefinition' : 'openTranslation',
+                  idsName: item.name,
+                  lang: state.activeLanguage,
+                });
+              });
+            });
+
+            missingList.appendChild(row);
+          });
+        }
+
+        function renderFileMessages(payload) {
+          fileMessages.innerHTML = '';
+          if (!payload || !payload.messages || payload.messages.length === 0) {
+            fileMessages.innerHTML = '<div class="empty">Select a GRD/GRDP file to view detailed messages</div>';
+            return;
+          }
+
+          payload.messages.forEach((msg) => {
+            const translation = msg.translation || 'No translation';
+            const row = document.createElement('div');
+            row.className = 'list-item';
+            row.innerHTML =
+              '<div class="list-title wrap">' + msg.name + '</div>' +
+              '<div class="label wrap">' + (msg.filePath || '') + '</div>' +
+              '<div class="muted wrap">' + (msg.english || '') + '</div>' +
+              '<div class="label wrap">' + (msg.lang ? 'Translation[' + msg.lang + ']: ' : 'Translation: ') + translation + '</div>' +
+              '<div class="row mt-6">' +
+                '<button class="ghost" data-action="openDefinition">Go to definition</button>' +
+                '<button class="ghost" data-action="openTranslation">Go to translation</button>' +
+              '</div>';
+
+            row.querySelectorAll('button').forEach((btn) => {
+              btn.addEventListener('click', () => {
+                const action = btn.getAttribute('data-action');
+                vscode.postMessage({
+                  type: action === 'openDefinition' ? 'openDefinition' : 'openTranslation',
+                  idsName: msg.name,
+                  lang: msg.lang,
+                });
+              });
+            });
+
+            fileMessages.appendChild(row);
+          });
+
+          if (payload.hasMore) {
+            const more = document.createElement('div');
+            more.className = 'empty';
+            more.textContent =
+              'Showing only the first ' + payload.messages.length + '/' + payload.total + ' results. Refine filters to narrow the search.';
+            fileMessages.appendChild(more);
+          }
+        }
+
+        function renderSearchResults(payload) {
+          searchResults.innerHTML = '';
+          searchStatus.textContent = '';
+          searchLoading = false;
+          lastQuery = (payload && payload.keyword) ? payload.keyword : lastQuery;
+          if (!payload || !payload.results || payload.results.length === 0) {
+            searchResults.innerHTML = '<div class="empty">No results</div>';
+            return;
+          }
+
+          const safeQuery = lastQuery ? lastQuery.replace(/[.*+?^$()|[\\]{}]/g, '\\$&') : '';
+          const regex = safeQuery ? new RegExp('(' + safeQuery + ')', 'ig') : null;
+          const highlight = (text) => {
+            if (!text) return '';
+            if (!regex) return text;
+            return text.replace(regex, '<span class="highlight">$1</span>');
+          };
+
+          payload.results.forEach((item) => {
+            const row = document.createElement('div');
+            row.className = 'list-item search-item';
+            row.dataset.expanded = 'false';
+            const translationText = item.translation || 'No translation';
+            const fileLabel = item.filePath || '';
+            const translationHtml = highlight(translationText);
+            const englishHtml = highlight(item.english || '');
+            const nameHtml = highlight(item.name || '');
+
+            row.innerHTML =
+              '<div class="translation wrap">' + translationHtml + '</div>' +
+              (nameHtml ? '<div class="label wrap key">' + nameHtml + '</div>' : '') +
+              '<div class="details">' +
+                (nameHtml ? '<div class="list-title wrap">' + nameHtml + '</div>' : '') +
+                (item.lang ? '<div class="label wrap">Language: ' + item.lang + '</div>' : '') +
+                '<div class="label wrap">' + fileLabel + '</div>' +
+                '<div class="muted wrap">' + englishHtml + '</div>' +
+                '<div class="row mt-6">' +
+                  '<button class="ghost" data-action="openDefinition">Go to definition</button>' +
+                  '<button class="ghost" data-action="openTranslation">Go to translation</button>' +
+                  '<button class="ghost" data-action="searchWorkspace">Search key usage in workspace</button>' +
+                '</div>' +
+              '</div>';
+
+            const details = row.querySelector('.details');
+
+            const setExpanded = (expanded) => {
+              row.dataset.expanded = expanded ? 'true' : 'false';
+              details.style.display = expanded ? 'grid' : 'none';
+            };
+
+            setExpanded(false);
+
+            row.addEventListener('click', (e) => {
+              const target = e.target;
+              const tag = target && target.tagName ? target.tagName.toLowerCase() : '';
+              const action = target && target.getAttribute ? target.getAttribute('data-action') : null;
+
+              // Do not toggle when the user is selecting text
+              if (window.getSelection && window.getSelection()?.toString()) {
+                return;
+              }
+              // Only toggle when clicking empty card space or the toggle area
+              if (action && action !== 'toggle') return;
+              if (tag === 'button' && action !== 'toggle') return;
+
+              e.stopPropagation();
+              setExpanded(row.dataset.expanded !== 'true');
+            });
+
+            row.querySelectorAll('button').forEach((btn) => {
+              const action = btn.getAttribute('data-action');
+              if (action === 'openDefinition' || action === 'openTranslation' || action === 'searchWorkspace') {
+                btn.addEventListener('click', (e) => {
+                  e.stopPropagation();
+                  vscode.postMessage({
+                    type:
+                      action === 'openDefinition'
+                        ? 'openDefinition'
+                        : action === 'openTranslation'
+                          ? 'openTranslation'
+                          : 'searchWorkspace',
+                    idsName: item.name,
+                    lang: item.lang,
+                  });
+                });
+              }
+            });
+
+            searchResults.appendChild(row);
+          });
+        }
+
+        function renderIndexStatus(stats) {
+          const empty = !stats || stats.messageCount === 0;
+          if (empty) {
+            const placeholder = document.createElement('div');
+            placeholder.className = 'empty';
+            placeholder.textContent = 'Index not built or empty. Please run "Rebuild i18n index" first.';
+            statCards.innerHTML = '';
+            statCards.appendChild(placeholder);
+          }
+        }
+
+        function performSearch() {
+          const query = (searchInput.value || '').trim();
+          if (!query) {
+            renderSearchResults({ results: [], total: 0 });
+            return;
+          }
+          searchLoading = true;
+          searchStatus.innerHTML = '<span class="spinner"></span> Searching...';
+          searchResults.innerHTML = '';
+          vscode.postMessage({
+            type: 'search',
+            query,
+            lang: languageSelect.value || state.activeLanguage,
+          });
+        }
+
+        window.addEventListener('message', (event) => {
+          const type = event.data.type;
+          const payload = event.data.payload;
+          switch (type) {
+            case 'overview': {
+              state.overview = payload;
+              const incomingLang = payload.activeLanguage || '';
+              if (!userSelectedLang) {
+                state.activeLanguage = incomingLang || state.activeLanguage || '';
+              }
+              statsLoaded = false;
+              statsRequested = false;
+              if (statsStatus) statsStatus.textContent = 'Load coverage after expanding';
+              languageBadge.textContent = payload.activeLanguage
+                ? 'Active language: ' + payload.activeLanguage
+                : 'No language selected';
+
+              const languages = payload.languages && payload.languages.length
+                ? payload.languages
+                : [];
+              const options = [...languages];
+              if (state.activeLanguage && !options.find((l) => (l.code || l) === state.activeLanguage)) {
+                options.unshift({ code: state.activeLanguage, label: state.activeLanguage });
+              }
+              if (!options.length) {
+                options.push({ code: 'zh-CN', label: 'zh-CN' });
+              }
+
+              languageSelect.innerHTML = '';
+              options.forEach((langObj) => {
+                const code = langObj.code || langObj;
+                const label = langObj.label || code;
+                const option = document.createElement('option');
+                option.value = code;
+                option.textContent = label;
+                if (code === state.activeLanguage) option.selected = true;
+                languageSelect.appendChild(option);
+              });
+
+              renderIndexStatus(payload.indexStats);
+              renderFiles(payload.files);
+              break;
+            }
+            case 'fileMessages':
+              renderFileMessages(payload);
+              break;
+            case 'searchResults':
+              renderSearchResults(payload);
+              break;
+            case 'statsData':
+              statsLoaded = true;
+              statsRequested = true;
+              if (statsStatus) statsStatus.textContent = '';
+              renderStats(payload.translationStats);
+              renderMissing(payload.missingTranslations);
+              break;
+            case 'error':
+              vscode.postMessage({ type: 'refresh' });
+              break;
+            default:
+              break;
+          }
+        });
+
+        document.getElementById('searchBtn').addEventListener('click', performSearch);
+        document.getElementById('refreshBtn').addEventListener('click', () => {
+          searchStatus.textContent = '';
+          vscode.postMessage({ type: 'refresh' });
+          if ((searchInput.value || '').trim()) {
+            performSearch();
+          }
+        });
+        document.getElementById('expandAll').addEventListener('click', () => {
+          document.querySelectorAll('#searchResults .search-item').forEach((item) => {
+            const details = item.querySelector('.details');
+            if (details) {
+              details.style.display = 'grid';
+              item.dataset.expanded = 'true';
+            }
+          });
+        });
+        document.getElementById('collapseAll').addEventListener('click', () => {
+          document.querySelectorAll('#searchResults .search-item').forEach((item) => {
+            const details = item.querySelector('.details');
+            if (details) {
+              details.style.display = 'none';
+              item.dataset.expanded = 'false';
+            }
+          });
+        });
+
+        languageSelect.addEventListener('change', () => {
+          userSelectedLang = true;
+          state.activeLanguage = languageSelect.value;
+          vscode.postMessage({ type: 'refresh' });
+        });
+
+        searchInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            performSearch();
+          }
+        });
+
+        statsSection.addEventListener('toggle', () => {
+          if (statsSection.open && !statsRequested) {
+            statsRequested = true;
+              if (statsStatus) statsStatus.textContent = 'Loading...';
+            vscode.postMessage({
+              type: 'loadStats',
+              lang: languageSelect.value || state.activeLanguage,
+            });
+          }
+        });
+
+        renderSearchResults({ results: [] });
+        renderFileMessages({ messages: [] });
+        vscode.postMessage({ type: 'ready' });
+      })();
+    </script>
+  </body>
+</html>

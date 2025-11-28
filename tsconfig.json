@@ -4,7 +4,8 @@
     "target": "ES2020",
     "outDir": "out",
     "lib": [
-      "ES2020"
+      "ES2020",
+      "DOM"
     ],
     "sourceMap": true,
     "rootDir": "src",
@@ -17,6 +18,8 @@
   "exclude": [
     "node_modules",
     ".vscode-test",
-    "vscode-window-color-main"
+    "vscode-window-color-main",
+    "specs",
+    "**/__tests__"
   ]
 }

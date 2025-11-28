@@ -1,0 +1,11 @@
+node_modules/
+out/
+dist/
+build/
+coverage/
+.vscode-test/
+.vscode-test-web/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+tests/chromium-i18n/fixtures/

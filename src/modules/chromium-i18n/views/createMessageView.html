@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create GRD Message</title>
+    <style>
+        body {
+            font-family: var(--vscode-font-family);
+            font-size: var(--vscode-font-size);
+            color: var(--vscode-foreground);
+            background-color: var(--vscode-editor-background);
+            padding: 20px;
+        }
+
+        .header {
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--vscode-widget-border);
+        }
+
+        .file-path {
+            font-family: monospace;
+            background-color: var(--vscode-textCodeBlock-background);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--vscode-input-border);
+            background-color: var(--vscode-input-background);
+            color: var(--vscode-input-foreground);
+            font-family: inherit;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: 1px solid var(--vscode-focusBorder);
+        }
+
+        .hint {
+            font-size: 0.85em;
+            color: var(--vscode-descriptionForeground);
+            margin-top: 4px;
+        }
+
+        .checkbox-group {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid var(--vscode-input-border);
+            padding: 10px;
+            background-color: var(--vscode-input-background);
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .checkbox-item input {
+            margin-right: 8px;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 8px 16px;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        button.primary {
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+        }
+
+        button.primary:hover {
+            background-color: var(--vscode-button-hoverBackground);
+        }
+
+        button.secondary {
+            background-color: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-button-secondaryForeground);
+        }
+
+        button.secondary:hover {
+            background-color: var(--vscode-button-secondaryHoverBackground);
+        }
+
+        .loader {
+            border: 4px solid var(--vscode-widget-border);
+            border-top: 4px solid var(--vscode-progressBar-background);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: none;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .review-section {
+            display: none;
+            margin-top: 30px;
+            padding: 15px;
+            border: 2px solid var(--vscode-inputValidation-infoBorder);
+            background-color: var(--vscode-inputValidation-infoBackground);
+            border-radius: 4px;
+        }
+
+        .review-section h4 {
+            margin-top: 0;
+            color: var(--vscode-inputValidation-infoForeground);
+        }
+
+        .review-item {
+            margin-bottom: 10px;
+        }
+
+        .review-label {
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+
+        .review-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--vscode-input-border);
+            background-color: var(--vscode-input-background);
+            color: var(--vscode-input-foreground);
+            font-family: monospace;
+            font-size: 0.95em;
+        }
+
+        .review-input:focus {
+            outline: 1px solid var(--vscode-focusBorder);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h3>Create GRD Message</h3>
+        <div>File: <span class="file-path" id="filePath"></span></div>
+    </div>
+
+    <div class="form-group">
+        <label for="inputLang">Input Language</label>
+        <select id="inputLang"></select>
+        <div class="hint">Language used for Content, Description, and Meaning.</div>
+    </div>
+
+    <div class="form-group">
+        <label for="idsName">Message ID (Optional)</label>
+        <input type="text" id="idsName" placeholder="IDS_MY_FEATURE_TITLE">
+        <div class="hint">Leave empty to auto-generate from content using AI.</div>
+    </div>
+
+    <div class="form-group">
+        <label for="description">Description <span style="color:red">*</span></label>
+        <input type="text" id="description" placeholder="Description for translators..." required>
+    </div>
+
+    <div class="form-group">
+        <label for="content">Content <span style="color:red">*</span></label>
+        <textarea id="content" rows="3" placeholder="Hello <ph name=&quot;USER&quot;>$1<ex>John</ex></ph>"
+            required></textarea>
+        <div class="hint">Supports XML tags like &lt;ph&gt;.</div>
+    </div>
+
+    <div class="form-group">
+        <label for="meaning">Meaning (Optional)</label>
+        <input type="text" id="meaning" placeholder="Noun vs Verb...">
+        <div class="hint">Only used to disambiguate identical text with different meanings.</div>
+    </div>
+
+    <div class="form-group">
+        <label>Target Languages (for AI Translation)</label>
+        <div class="checkbox-group" id="targetLangsGroup"></div>
+    </div>
+
+    <div id="loading" class="loading-container">
+        <div class="loader" style="display:block"></div>
+        <span>Processing with AI...</span>
+    </div>
+
+    <div id="reviewSection" class="review-section">
+        <h4>📝 AI Generated English Content - Please Review</h4>
+        <div id="reviewContainer"></div>
+    </div>
+
+    <div class="actions">
+        <button class="secondary" onclick="cancel()">Cancel</button>
+        <button id="actionBtn" class="primary" onclick="handleAction()">Next</button>
+    </div>
+
+    <script>
+        const vscode = acquireVsCodeApi();
+        let isReviewMode = false;
+        let aiResult = null;
+        let originalInput = {};
+
+        window.addEventListener('message', event => {
+            const message = event.data;
+            switch (message.command) {
+                case 'init':
+                    initializeForm(message);
+                    break;
+                case 'aiResult':
+                    handleAIResult(message.data);
+                    break;
+                case 'error':
+                    alert(message.message);
+                    setLoading(false);
+                    break;
+            }
+        });
+
+        function initializeForm(data) {
+            document.getElementById('filePath').textContent = data.filePath;
+
+            const inputLangSelect = document.getElementById('inputLang');
+            data.allLanguages.forEach(lang => {
+                const option = document.createElement('option');
+                option.value = lang.code;
+                option.textContent = lang.label;
+                if (lang.code === data.defaultLocale) {
+                    option.selected = true;
+                }
+                inputLangSelect.appendChild(option);
+            });
+
+            const targetLangsGroup = document.getElementById('targetLangsGroup');
+            data.availableLanguages.forEach(lang => {
+                const div = document.createElement('div');
+                div.className = 'checkbox-item';
+                div.innerHTML = `
+          <input type="checkbox" id="lang-${lang.code}" name="targetLangs" value="${lang.code}" checked>
+          <label for="lang-${lang.code}">${lang.label} (${lang.code})</label>
+        `;
+                targetLangsGroup.appendChild(div);
+            });
+        }
+
+        function handleAction() {
+            if (isReviewMode) {
+                create();
+            } else {
+                handleNext();
+            }
+        }
+
+        function handleNext() {
+            const formData = getFormData();
+            if (!validateForm(formData)) return;
+
+            const idsName = formData.idsName;
+            const inputLang = formData.inputLang;
+
+            const needsAI = !idsName || inputLang !== 'en';
+
+            if (needsAI) {
+                originalInput = {
+                    idsName: formData.idsName,
+                    description: formData.description,
+                    content: formData.content,
+                    meaning: formData.meaning,
+                    inputLang: formData.inputLang
+                };
+                requestAI(formData);
+            } else {
+                create();
+            }
+        }
+
+        function requestAI(data) {
+            setLoading(true);
+            vscode.postMessage({
+                command: 'requestAI',
+                data: data
+            });
+        }
+
+        function handleAIResult(result) {
+            setLoading(false);
+            aiResult = result;
+
+            let reviewHtml = '';
+            if (result.idsName) {
+                reviewHtml += `
+          <div class="review-item">
+            <label class="review-label" for="reviewEngIdsName">Generated ID:</label>
+            <input type="text" class="review-input" id="reviewEngIdsName" value="${escapeHtmlAttr(result.idsName)}">
+          </div>`;
+            }
+            if (result.content) {
+                reviewHtml += `
+          <div class="review-item">
+            <label class="review-label" for="reviewEngContent">English Content:</label>
+            <textarea class="review-input" id="reviewEngContent" rows="3">${escapeHtml(result.content)}</textarea>
+          </div>`;
+            }
+            if (result.description) {
+                reviewHtml += `
+          <div class="review-item">
+            <label class="review-label" for="reviewEngDescription">English Description:</label>
+            <input type="text" class="review-input" id="reviewEngDescription" value="${escapeHtmlAttr(result.description)}">
+          </div>`;
+            }
+            if (result.meaning) {
+                reviewHtml += `
+          <div class="review-item">
+            <label class="review-label" for="reviewEngMeaning">English Meaning:</label>
+            <input type="text" class="review-input" id="reviewEngMeaning" value="${escapeHtmlAttr(result.meaning)}">
+          </div>`;
+            }
+
+            document.getElementById('reviewContainer').innerHTML = reviewHtml;
+            document.getElementById('reviewSection').style.display = 'block';
+
+            isReviewMode = true;
+            document.getElementById('actionBtn').textContent = 'Create';
+        }
+
+        function create() {
+            let finalData = getFormData();
+
+            if (isReviewMode && aiResult) {
+                const reviewIdsName = document.getElementById('reviewEngIdsName');
+                const reviewContent = document.getElementById('reviewEngContent');
+                const reviewDescription = document.getElementById('reviewEngDescription');
+                const reviewMeaning = document.getElementById('reviewEngMeaning');
+
+                if (reviewIdsName) finalData.idsName = reviewIdsName.value.trim();
+                if (reviewContent) finalData.content = reviewContent.value.trim();
+                if (reviewDescription) finalData.description = reviewDescription.value.trim();
+                if (reviewMeaning) finalData.meaning = reviewMeaning.value.trim();
+
+                // Store original input information
+                finalData._originalContent = originalInput.content;
+                finalData._originalLang = originalInput.inputLang;
+
+                // IMPORTANT: If input language is in target languages and is not English,
+                // we need to handle it separately to avoid reverse translation
+                // The backend will use _originalContent directly for this language
+                if (finalData._originalLang && finalData._originalLang !== 'en') {
+                    // Keep the original targetLangs for backend to know user's full selection
+                    finalData._allTargetLangs = [...finalData.targetLangs];
+
+                    // But for AI translation, exclude the input language if it's in the list
+                    // (it will be handled separately using _originalContent)
+                    if (finalData.targetLangs.includes(finalData._originalLang)) {
+                        console.log(`[createMessage] Excluding input language ${finalData._originalLang} from AI translation targets`);
+                        // Note: We keep it in targetLangs so backend knows to include it in preview
+                        // Backend will detect it and set status='success' with _originalContent
+                    }
+                }
+            }
+
+            if (!validateForm(finalData)) return;
+
+            vscode.postMessage({
+                command: 'create',
+                data: finalData
+            });
+        }
+
+        function getFormData() {
+            return {
+                idsName: document.getElementById('idsName').value.trim(),
+                description: document.getElementById('description').value.trim(),
+                content: document.getElementById('content').value.trim(),
+                meaning: document.getElementById('meaning').value.trim(),
+                inputLang: document.getElementById('inputLang').value,
+                targetLangs: Array.from(document.querySelectorAll('input[name="targetLangs"]:checked')).map(cb => cb.value)
+            };
+        }
+
+        function validateForm(data) {
+            if (data.idsName && !/^[A-Z0-9_]+$/.test(data.idsName)) {
+                alert('ID must contain only uppercase letters, numbers, and underscores');
+                return false;
+            }
+            if (!data.description) {
+                alert('Description is required');
+                return false;
+            }
+            if (!data.content) {
+                alert('Content is required');
+                return false;
+            }
+            return true;
+        }
+
+        function setLoading(isLoading) {
+            document.getElementById('loading').style.display = isLoading ? 'flex' : 'none';
+            document.querySelector('.actions').style.display = isLoading ? 'none' : 'flex';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function escapeHtmlAttr(text) {
+            return text.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        function cancel() {
+            vscode.postMessage({ command: 'cancel' });
+        }
+    </script>
+</body>
+
+</html>
